@@ -115,5 +115,85 @@ namespace ReqnrollRunner.Core.Tests
         {
             Assert.Equal(expected, TestFilterBuilder.CanExpressAsFilterValue(title!));
         }
+
+        // ---- single example rows -------------------------------------------------------------
+
+        [Fact]
+        public void An_MSTest_example_row_matches_its_display_name()
+        {
+            // Reqnroll emits DisplayName="Add many <a> and <b>(1,2,3,4)" — the row's values followed
+            // by its pickle index — so a prefix of "(1,2,3," pins the row without knowing the index.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.MsTest,
+                new[] { "1", "2", "3" }, 1, out bool widened);
+
+            Assert.False(widened);
+            Assert.Contains(@"Name~\(1,2,3,", filter.Expression);
+            Assert.Equal(FilterStrategy.CodeBehind, filter.Strategy);
+        }
+
+        [Fact]
+        public void An_MSTest_example_row_stays_inside_its_own_outline()
+        {
+            // `Name~` is a substring match over EVERY test in the run, and display names are not
+            // unique across outlines: an outline with columns (a, b) and a row `| 1 | 2 |` produces
+            // "(1,2,7)", which the prefix "(1,2," from a different outline matches exactly. Without a
+            // FullyQualifiedName clause, running one row silently runs rows of unrelated outlines.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.MsTest,
+                new[] { "1", "2" }, 1, out _);
+
+            Assert.Contains("FullyQualifiedName~Ns.CalculatorFeature.AddManyAAndB", filter.Expression);
+            Assert.Contains(@"Name~\(1,2,", filter.Expression);
+            Assert.Contains("&", filter.Expression);
+        }
+
+        [Theory]
+        [InlineData("has \" quote")]
+        [InlineData("has \n newline")]
+        public void An_unquotable_row_value_widens_rather_than_building_a_broken_filter(string value)
+        {
+            // Same rule as a scenario title: a value that cannot survive the filter round trip must
+            // widen to the whole outline, never produce an expression that might match the wrong test.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.MsTest,
+                new[] { "1", value }, 2, out bool widened);
+
+            Assert.True(widened);
+            Assert.Equal("FullyQualifiedName~Ns.CalculatorFeature.AddManyAAndB", filter.Expression);
+            Assert.DoesNotContain("(Name~", filter.Expression);
+        }
+
+        [Theory]
+        [InlineData(RunnerKind.NUnit)]
+        [InlineData(RunnerKind.XUnit)]
+        [InlineData(RunnerKind.Unknown)]
+        public void Runners_that_cannot_select_a_row_widen_to_the_whole_outline(RunnerKind runner)
+        {
+            // Measured, not assumed: NUnit puts the arguments in the FQN but no filter over them
+            // matches, and xUnit gives every row the same FQN. See ForExampleRow's remarks.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", runner, new[] { "1", "2", "3" }, 2, out bool widened);
+
+            Assert.True(widened);
+            Assert.Equal("FullyQualifiedName~Ns.CalculatorFeature.AddManyAAndB", filter.Expression);
+            Assert.Equal(FilterStrategy.FeatureScopeFallback, filter.Strategy);
+            // The explanation is shown to the user as a warning, so it has to name the row that was
+            // asked for and say plainly that something else is happening.
+            Assert.Contains("row 2", filter.Explanation);
+        }
+
+        [Fact]
+        public void A_row_with_no_values_widens_rather_than_matching_every_row()
+        {
+            // "(" alone is a prefix of every parameterised display name in the project.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.MsTest,
+                new string[0], 1, out bool widened);
+
+            Assert.True(widened);
+            Assert.Equal("FullyQualifiedName~Ns.CalculatorFeature.AddManyAAndB", filter.Expression);
+            Assert.DoesNotContain("(Name~", filter.Expression);
+        }
     }
 }

@@ -99,8 +99,42 @@ all three (1 for a scenario, 3 for the outline, 8 for the whole feature).
 MSTest's `[TestMethod("Add two numbers")]` changes what `Name` and the console output show — it does
 not change the fully-qualified name. Filtering on FQN means we never have to care.
 
-The `Name~<title>` alternation is therefore used **only** in the sanitized fallback, where the
-reconstructed method name might be wrong and the raw title is a useful second chance.
+The `Name~<title>` alternation is therefore used only where the fully-qualified name is not enough:
+the sanitized fallback, where the reconstructed method name might be wrong and the raw title is a
+useful second chance, and single example rows, below.
+
+## Why a single example row works on MSTest and nowhere else
+
+A whole outline is one generated method, so every row shares one fully-qualified name. Selecting a
+single row therefore needs something *other* than the FQN — and only one of the three runners
+exposes anything usable. Established by running filters against real builds, not by reading docs:
+
+| Runner | What identifies a row | Can a VSTest filter select it? |
+|---|---|---|
+| MSTest | `DisplayName="Add many <a> and <b>(1,2,3,4)"` on each `[DataRow]` | **Yes** — `Name~` matches it |
+| NUnit | the arguments are in the FQN: `…AddManyAAndB("1","2","3",…)` | No. `~` and `=`, escaped and unescaped, with and without the namespace, all return zero tests — the `(` and `"` defeat the filter parser |
+| xUnit | nothing; every row has the same FQN | No. `DisplayName~` returns zero |
+
+So MSTest gets a real row filter and the other two widen to the whole outline, with the reason
+surfaced *before* the click — the context-menu item relabels itself to "Run Scenario Outline (all
+examples — this runner cannot isolate a row)" rather than letting someone ask for row 2 and then
+notice three tests ran.
+
+The MSTest filter matches a **prefix** of the display name, `(1,2,3,` — the values followed by a
+comma — because the final component is Reqnroll's pickle index, a counter over the whole feature
+that a caller cannot know. Two details matter:
+
+* it is **conjoined with the FQN**: `(FullyQualifiedName~…AddManyAAndB)&(Name~\(1,2,3,)`. `Name~` is
+  a substring match over every test in the run, and display names are not unique across outlines —
+  a two-column outline with the row `| 1 | 2 |` produces `(1,2,7)`, which the prefix `(1,2,` from an
+  entirely different outline matches exactly. Alone, "run this row" would quietly run rows of
+  unrelated scenarios;
+* a row whose values contain a quote or a line break **widens** instead, rather than emitting a
+  filter that cannot survive the argument round trip — the same rule the sanitized fallback applies
+  to titles.
+
+Measured against `SampleCalculator.MsTest`: lines 42, 43 and 48 of `Calculator.feature` select
+`(1,2,3,4)`, `(4,5,9,5)` and `(10,20,30,6)` respectively — one test each, the right one each time.
 
 ## Why TRX is parsed rather than stdout
 

@@ -85,7 +85,7 @@ tests in every case — measured, not assumed. This also sidesteps MSTest's frie
 | `src/ReqnrollRunner.Core` | All the real logic. `netstandard2.0`, **zero Visual Studio dependencies**. |
 | `src/ReqnrollRunner.Vsix` | The extension. VS 2022 and 2026, classic VSSDK, in-process, Windows-only build. |
 | `src/ReqnrollRunner.Cli` | `reqnroll-runner` — a thin console over Core. |
-| `tests/ReqnrollRunner.Core.Tests` | xUnit. 264 tests, the bulk of the coverage. |
+| `tests/ReqnrollRunner.Core.Tests` | xUnit. 276 tests, the bulk of the coverage. |
 | `tests/fixtures` | Feature files, captured TRX files and real generated code-behind. |
 | `samples/SampleCalculator` | Working Reqnroll projects — NUnit, xUnit and MSTest variants. |
 | `build/VsixCompileCheck` | Compiles the VSIX's C# on any platform so CI catches breakage. |
@@ -112,6 +112,9 @@ reqnroll-runner run --file Features/Calculator.feature --line 12 --no-build --co
 
 # Start a debuggable run and print the test host pid to attach to
 reqnroll-runner debug --file Features/Calculator.feature --line 12
+
+# Check a feature file for authoring mistakes that are legal Gherkin
+reqnroll-runner lint --file Features/Calculator.feature
 ```
 
 > `--configuration` matters whenever you pass `--no-build`: `dotnet test` defaults to Debug, so
@@ -166,11 +169,18 @@ Studio's own bindings for those keep working in `.cs` files.
 
 ## Scope
 
-**v1 does:** run and debug a Scenario, a Scenario Outline (all example rows together), or a whole
-Feature, for Reqnroll projects using NUnit, xUnit or MSTest.
+**v1 does:** run and debug a Scenario, a Scenario Outline (all example rows together), a single
+`Examples` row, or a whole Feature, for Reqnroll projects using NUnit, xUnit or MSTest. It also
+flags authoring mistakes that are legal Gherkin — an `Examples` column no step uses, a `<placeholder>`
+with no column behind it, an outline that substitutes nothing.
 
-**v1 does not:** integrate with the Test Explorer window, run individual Scenario Outline example
-rows, show a discovery tree, support SpecFlow, or support VS Code. The feature file *is* the UI.
+**Single example rows are MSTest-only**, and that is a limit of the runners rather than a shortcut
+here: only MSTest gives a row an identity a VSTest filter can match. On NUnit and xUnit the command
+says so and runs the whole outline. See
+[docs/architecture.md](docs/architecture.md#why-a-single-example-row-works-on-mstest-and-nowhere-else).
+
+**v1 does not:** integrate with the Test Explorer window, show a discovery tree, support SpecFlow, or
+support VS Code. The feature file *is* the UI.
 
 There is no telemetry and no network access at run time.
 

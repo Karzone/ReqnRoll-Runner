@@ -97,11 +97,26 @@ namespace ReqnrollRunner.Core.Mapping
                 // matching on a prefix of "(v1,v2,…" pins the row without needing the index.
                 string prefix = "(" + string.Join(",", rowValues.ToArray()) + ",";
 
-                widened = false;
-                return new TestFilter(
-                    "Name~" + Escape(prefix),
-                    FilterStrategy.CodeBehind,
-                    "Matched example row " + ordinal + " by its MSTest display name.");
+                // A value carrying a quote or a newline cannot survive the argument round trip, and a
+                // filter that is merely malformed is worse than one that is honestly wide: it either
+                // matches nothing or matches something else. Same rule as ForSanitizedGuess.
+                if (CanExpressAsFilterValue(prefix))
+                {
+                    // Conjoined with the outline's own method, NOT `Name~` on its own. `Name~` is a
+                    // substring match across every test in the run, and display names are not unique
+                    // across outlines — a two-column outline with the row `| 1 | 2 |` produces
+                    // "(1,2,7)", which the prefix "(1,2," from a completely different outline
+                    // matches. Alone, "run this row" would quietly run rows of unrelated scenarios.
+                    string expression =
+                        "(FullyQualifiedName~" + Escape(fullyQualifiedClassName + "." + methodName) + ")" +
+                        "&(Name~" + Escape(prefix) + ")";
+
+                    widened = false;
+                    return new TestFilter(
+                        expression,
+                        FilterStrategy.CodeBehind,
+                        "Matched example row " + ordinal + " by its MSTest display name.");
+                }
             }
 
             widened = true;
@@ -114,6 +129,16 @@ namespace ReqnrollRunner.Core.Mapping
         /// <summary>Why a single row could not be selected, in the user's terms.</summary>
         private static string DescribeWidening(RunnerKind runner, int ordinal)
         {
+            if (runner == RunnerKind.MsTest)
+            {
+                // Reached only when the row itself defeats the filter — MSTest is the one runner that
+                // CAN select a row, so blaming the runner here would send someone looking in the
+                // wrong place.
+                return "Example row " + ordinal + " cannot be expressed in a test filter — it is " +
+                       "empty, or one of its values contains a quote or a line break. Running all " +
+                       "rows of the outline instead.";
+            }
+
             switch (runner)
             {
                 case RunnerKind.NUnit:
