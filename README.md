@@ -167,6 +167,11 @@ dotnet test  ReqnrollRunner.sln
 To exercise it by hand, open `samples/SampleCalculator/SampleCalculator.NUnit` in the experimental
 instance, put the caret in `Features/Calculator.feature` and right-click.
 
+**[docs/manual-testing.md](docs/manual-testing.md) is the full procedure** — exact caret positions and
+the count each should produce, the debug walkthrough, and what to check first when a command does not
+appear. The extension has no automated coverage (CI compiles its C# but cannot run Visual Studio), so
+that pass is the only thing standing between a regression and a user finding it.
+
 ## Contributing
 
 Issues and pull requests are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for how to get set
