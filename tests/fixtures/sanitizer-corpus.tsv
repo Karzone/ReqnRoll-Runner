@@ -1,0 +1,38 @@
+# Reqnroll 3.3.4 generator output, captured verbatim from a sample built with the real
+# Reqnroll.Tools.MsBuild.Generation targets. This file is an ORACLE, not a hand-written
+# expectation: TestNameSanitizer is asserted against it row by row.
+# Columns: <JSON-encoded title>\t<generated identifier>\t<FEATURE_CLASS|METHOD>
+# Regenerate with: scripts/capture-sanitizer-corpus.sh
+"Sanitizer corpus"	SanitizerCorpusFeature	FEATURE_CLASS
+"Add two numbers"	AddTwoNumbers	METHOD
+"1 plus 1"	_1Plus1	METHOD
+"snake_case and kebab-case"	Snake_CaseAndKebab_Case	METHOD
+"alreadyCamelCase hasWords"	AlreadyCamelCaseHasWords	METHOD
+"UPPER lower MiXeD"	UPPERLowerMiXeD	METHOD
+"café naïve Ærø"	CafeNaiveAEro	METHOD
+"a  b   c"	ABC	METHOD
+"99 bottles of beer"	_99BottlesOfBeer	METHOD
+"Ivan's \"quoted\" (tricky) & odd | title ~ = !"	IvansQuotedTrickyOddTitle	METHOD
+"Ünïcödé — スカラー"	Unicodeスカラー	METHOD
+"Add many <a>"	AddManyA	METHOD
+"Straße größer"	StraBeGroBer	METHOD
+"Ølsen Ægir Đorđe"	OlsenAEgirDorde	METHOD
+"Œuvre œuf"	ŒuvreŒuf	METHOD
+"Łódź"	Lodz	METHOD
+"ĐorĐe"	DorDe	METHOD
+"þorn ð eth"	ÞornDEth	METHOD
+"trailing space"	TrailingSpace	METHOD
+"leading space"	LeadingSpace	METHOD
+"tabs\tinside"	TabsInside	METHOD
+"dots.and.commas,here"	Dots_And_CommasHere	METHOD
+"percent 50% and #hash"	Percent50AndHash	METHOD
+"semi;colon:and/slash\\back"	SemiColonAndSlashBack	METHOD
+"plus+minus-equals="	PlusMinus_Equals	METHOD
+"[brackets] {braces}"	BracketsBraces	METHOD
+"emoji 🎉 party"	EmojiParty	METHOD
+"中文 测试"	中文测试	METHOD
+"русский текст"	РусскийТекст	METHOD
+"only!!!"	Only	METHOD
+"___"	___	METHOD
+"a-b-c"	A_B_C	METHOD
+"x_1_2"	X_1_2	METHOD

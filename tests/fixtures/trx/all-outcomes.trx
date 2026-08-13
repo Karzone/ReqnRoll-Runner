@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Hand-written companion to the two captured TRX files in this folder. Those cover the outcomes a
+  real Reqnroll run actually produces (Passed / Failed / NotExecuted); this one exercises every other
+  outcome string TrxParser claims to understand, including one it deliberately does not, so the
+  Unknown branch is covered too. Structure mirrors a genuine VSTest TRX.
+-->
+<TestRun id="11111111-2222-3333-4444-555555555555" name="all-outcomes" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-08-13T10:00:00.0000000+00:00" queuing="2026-08-13T10:00:00.0000000+00:00" start="2026-08-13T10:00:00.0000000+00:00" finish="2026-08-13T10:00:05.0000000+00:00" />
+  <Results>
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000001" testId="10000000-0000-0000-0000-000000000001" testName="PassedScenario" duration="00:00:00.1230000" outcome="Passed" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000002" testId="10000000-0000-0000-0000-000000000002" testName="FailedScenario" duration="00:00:00.4560000" outcome="Failed">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected 120 but the calculator produced 7.</Message>
+          <StackTrace>   at SampleCalculator.Steps.CalculatorSteps.ThenTheResultShouldBe(Int32 expected)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000003" testId="10000000-0000-0000-0000-000000000003" testName="InconclusiveScenario" duration="00:00:00.0100000" outcome="Inconclusive" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000004" testId="10000000-0000-0000-0000-000000000004" testName="SkippedScenario" duration="00:00:00.0010000" outcome="Skipped" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000005" testId="10000000-0000-0000-0000-000000000005" testName="NotExecutedScenario" duration="00:00:00.0000000" outcome="NotExecuted" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000006" testId="10000000-0000-0000-0000-000000000006" testName="TimedOutScenario" duration="00:00:30.0000000" outcome="Timeout" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000007" testId="10000000-0000-0000-0000-000000000007" testName="AbortedScenario" duration="00:00:00.0000000" outcome="Aborted" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000008" testId="10000000-0000-0000-0000-000000000008" testName="ErroredScenario" duration="00:00:00.0000000" outcome="Error" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000009" testId="10000000-0000-0000-0000-000000000009" testName="NoneScenario" duration="00:00:00.0000000" outcome="None" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000010" testId="10000000-0000-0000-0000-000000000010" testName="NotRunnableScenario" duration="00:00:00.0000000" outcome="NotRunnable" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000011" testId="10000000-0000-0000-0000-000000000011" testName="SomethingNewScenario" duration="00:00:00.0000000" outcome="AnOutcomeWeHaveNeverSeen" />
+    <UnitTestResult executionId="a0000000-0000-0000-0000-000000000012" testId="99999999-9999-9999-9999-999999999999" testName="ResultWithNoTestDefinition" duration="00:00:00.0000000" outcome="Passed" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PassedScenario" id="10000000-0000-0000-0000-000000000001">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="PassedScenario" />
+    </UnitTest>
+    <UnitTest name="FailedScenario" id="10000000-0000-0000-0000-000000000002">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="FailedScenario" />
+    </UnitTest>
+    <UnitTest name="InconclusiveScenario" id="10000000-0000-0000-0000-000000000003">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="InconclusiveScenario" />
+    </UnitTest>
+    <UnitTest name="SkippedScenario" id="10000000-0000-0000-0000-000000000004">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="SkippedScenario" />
+    </UnitTest>
+    <UnitTest name="NotExecutedScenario" id="10000000-0000-0000-0000-000000000005">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="NotExecutedScenario" />
+    </UnitTest>
+    <UnitTest name="TimedOutScenario" id="10000000-0000-0000-0000-000000000006">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="TimedOutScenario" />
+    </UnitTest>
+    <UnitTest name="AbortedScenario" id="10000000-0000-0000-0000-000000000007">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="AbortedScenario" />
+    </UnitTest>
+    <UnitTest name="ErroredScenario" id="10000000-0000-0000-0000-000000000008">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="ErroredScenario" />
+    </UnitTest>
+    <UnitTest name="NoneScenario" id="10000000-0000-0000-0000-000000000009">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="NoneScenario" />
+    </UnitTest>
+    <UnitTest name="NotRunnableScenario" id="10000000-0000-0000-0000-000000000010">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="NotRunnableScenario" />
+    </UnitTest>
+    <UnitTest name="SomethingNewScenario" id="10000000-0000-0000-0000-000000000011">
+      <TestMethod codeBase="Sample.dll" adapterTypeName="executor://nunit3testexecutor/" className="Sample.Features.CalculatorFeature" name="SomethingNewScenario" />
+    </UnitTest>
+  </TestDefinitions>
+</TestRun>

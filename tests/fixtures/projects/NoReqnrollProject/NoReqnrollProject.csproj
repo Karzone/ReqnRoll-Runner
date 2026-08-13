@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SPEC §6 case 5: a .feature file in a project with no Reqnroll reference at all. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="4.2.2" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SPEC §3.2: only the base Reqnroll package, so the runner cannot be identified. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Reqnroll" Version="3.3.4" />
+  </ItemGroup>
+</Project>

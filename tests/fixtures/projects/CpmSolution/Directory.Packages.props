@@ -1,0 +1,9 @@
+<Project>
+  <!-- SPEC §6 case 10: the Reqnroll reference's version lives here, not in the csproj. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Reqnroll.NUnit" Version="3.3.4" />
+  </ItemGroup>
+</Project>

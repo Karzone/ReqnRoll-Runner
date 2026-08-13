@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SampleCalculator.XUnit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Reqnroll.xUnit" Version="3.3.4" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+  </ItemGroup>
+</Project>

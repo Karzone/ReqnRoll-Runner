@@ -1,0 +1,20 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Karthik</Authors>
+    <Company>ReqnrollRunner (community)</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Karzone/reqnroll-runner</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>

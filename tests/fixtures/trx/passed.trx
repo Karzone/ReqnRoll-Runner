@@ -1,0 +1,357 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="9d6483a0-549e-4caa-927e-a2db6c48a30d" name="@vm 2026-08-13 17:51:04" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-08-13T17:51:04.4623760+00:00" queuing="2026-08-13T17:51:04.4623761+00:00" start="2026-08-13T17:51:03.2298713+00:00" finish="2026-08-13T17:51:04.5249338+00:00" />
+  <TestSettings name="default" id="8cf11183-6dff-4746-bdb2-e01cf6784b25">
+    <Deployment runDeploymentRoot="_vm_2026-08-13_17_51_04" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="60c9169f-fba1-4edd-a49a-fe6c445f723d" testId="e305ac81-0e12-1d12-3543-41bec8499bb9" testName="IvansQuotedTrickyOddTitle" computerName="vm" duration="00:00:00.0018520" startTime="2026-08-13T17:51:04.2996396+00:00" endTime="2026-08-13T17:51:04.3014917+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="60c9169f-fba1-4edd-a49a-fe6c445f723d">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 1
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+And I entered 1
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 2
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(2) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4a37b15f-2cd2-4f3c-8eef-b113dce158c5" testId="b3d844ee-5900-0aca-1b31-783041327f0f" testName="MultiplyTwoNumbers" computerName="vm" duration="00:00:00.0038770" startTime="2026-08-13T17:51:04.3015237+00:00" endTime="2026-08-13T17:51:04.3054002+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4a37b15f-2cd2-4f3c-8eef-b113dce158c5">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 6
+-&gt; done: CalculatorSteps.GivenIEntered(6) (0.0s)
+And I entered 7
+-&gt; done: CalculatorSteps.GivenIEntered(7) (0.0s)
+When I press multiply
+-&gt; done: CalculatorSteps.WhenIPressMultiply() (0.0s)
+Then the result should be 42
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(42) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5ec44833-1023-46c2-8cce-88a65b6dafba" testId="4c6bba4d-6cb1-d1ae-d70c-e4942c913b35" testName="AddManyAAndB(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,null)" computerName="vm" duration="00:00:00.1098270" startTime="2026-08-13T17:51:04.1678128+00:00" endTime="2026-08-13T17:51:04.2775716+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5ec44833-1023-46c2-8cce-88a65b6dafba">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 1
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+And I entered 2
+-&gt; done: CalculatorSteps.GivenIEntered(2) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 3
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(3) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="322060fd-c010-43d9-8c86-3061656deb7f" testId="c7984037-1582-e3b7-2a9f-844d5fa16104" testName="AddManyAAndB(&quot;10&quot;,&quot;20&quot;,&quot;30&quot;,&quot;6&quot;,[&quot;extra&quot;])" computerName="vm" duration="00:00:00.0011290" startTime="2026-08-13T17:51:04.2945105+00:00" endTime="2026-08-13T17:51:04.2956394+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="322060fd-c010-43d9-8c86-3061656deb7f">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 10
+-&gt; done: CalculatorSteps.GivenIEntered(10) (0.0s)
+And I entered 20
+-&gt; done: CalculatorSteps.GivenIEntered(20) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 30
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(30) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="394e0002-ffee-46d3-a90d-02f8ec65b70d" testId="41234771-b37c-1c5b-86e9-8ece295f6b0b" testName="Unicodeスカラー" computerName="vm" duration="00:00:00.0017400" startTime="2026-08-13T17:51:04.3100476+00:00" endTime="2026-08-13T17:51:04.3117879+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="394e0002-ffee-46d3-a90d-02f8ec65b70d">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 2
+-&gt; done: CalculatorSteps.GivenIEntered(2) (0.0s)
+And I entered 3
+-&gt; done: CalculatorSteps.GivenIEntered(3) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 5
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(5) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ddc1beeb-fbd5-4b90-9676-d3c954164e90" testId="ffe42ca3-18ce-91dd-e2bd-9993b95565b3" testName="AddTwoNumbers" computerName="vm" duration="00:00:00.0021620" startTime="2026-08-13T17:51:04.2974511+00:00" endTime="2026-08-13T17:51:04.2996127+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ddc1beeb-fbd5-4b90-9676-d3c954164e90">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 50
+-&gt; done: CalculatorSteps.GivenIEntered(50) (0.0s)
+And I entered 70
+-&gt; done: CalculatorSteps.GivenIEntered(70) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 120
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(120) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9bc3cc6c-c09a-4551-b632-bbab09cbbb38" testId="1ce7b357-e929-214a-82a4-905232672f30" testName="ZweiZahlenAddieren" computerName="vm" duration="00:00:00.0022590" startTime="2026-08-13T17:51:04.3453703+00:00" endTime="2026-08-13T17:51:04.3476296+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9bc3cc6c-c09a-4551-b632-bbab09cbbb38">
+      <Output>
+        <StdOut>Angenommen der Rechner ist eingeschaltet
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Angenommen ich habe 3 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(3) (0.0s)
+Und ich habe 4 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(4) (0.0s)
+Wenn ich auf addieren drücke
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Dann sollte das Ergebnis 7 sein
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(7) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3748ca81-dc0d-4ed6-b296-0499cc207c65" testId="d7fa9141-5b6a-889c-7154-02c602d17b12" testName="MehrereZahlenAddieren(&quot;2&quot;,&quot;5&quot;,&quot;7&quot;,&quot;2&quot;,null)" computerName="vm" duration="00:00:00.0022050" startTime="2026-08-13T17:51:04.3431255+00:00" endTime="2026-08-13T17:51:04.3453300+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3748ca81-dc0d-4ed6-b296-0499cc207c65">
+      <Output>
+        <StdOut>Angenommen der Rechner ist eingeschaltet
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Angenommen ich habe 2 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(2) (0.0s)
+Und ich habe 5 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(5) (0.0s)
+Wenn ich auf addieren drücke
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Dann sollte das Ergebnis 7 sein
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(7) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="39583f48-d85e-4807-87f6-638f439f0f95" testId="8e605eb0-fe65-1102-7fd3-2ba27a4db7b5" testName="SubtractInsideARule" computerName="vm" duration="00:00:00.0046030" startTime="2026-08-13T17:51:04.3054171+00:00" endTime="2026-08-13T17:51:04.3100201+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="39583f48-d85e-4807-87f6-638f439f0f95">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 9
+-&gt; done: CalculatorSteps.GivenIEntered(9) (0.0s)
+And I entered 4
+-&gt; done: CalculatorSteps.GivenIEntered(4) (0.0s)
+When I press subtract
+-&gt; done: CalculatorSteps.WhenIPressSubtract() (0.0s)
+Then the result should be 5
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(5) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="018551c0-4055-4a52-9746-1e3403c8d77a" testId="fa17addd-d909-9905-71c4-0903b19a0db2" testName="AddManyAAndB(&quot;4&quot;,&quot;5&quot;,&quot;9&quot;,&quot;5&quot;,null)" computerName="vm" duration="00:00:00.0149510" startTime="2026-08-13T17:51:04.2795211+00:00" endTime="2026-08-13T17:51:04.2944718+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="018551c0-4055-4a52-9746-1e3403c8d77a">
+      <Output>
+        <StdOut>Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 4
+-&gt; done: CalculatorSteps.GivenIEntered(4) (0.0s)
+And I entered 5
+-&gt; done: CalculatorSteps.GivenIEntered(5) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 9
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(9) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="869d2b9e-3c45-459f-92ae-76c4c3a26480" testId="2668fb4c-cb67-2091-4d7c-7aef9bca4e45" testName="MehrereZahlenAddieren(&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,null)" computerName="vm" duration="00:00:00.0251219" startTime="2026-08-13T17:51:04.3179360+00:00" endTime="2026-08-13T17:51:04.3430582+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="869d2b9e-3c45-459f-92ae-76c4c3a26480">
+      <Output>
+        <StdOut>Angenommen der Rechner ist eingeschaltet
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Angenommen ich habe 1 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+Und ich habe 1 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+Wenn ich auf addieren drücke
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Dann sollte das Ergebnis 2 sein
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(2) (0.0s)</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="MehrereZahlenAddieren(&quot;2&quot;,&quot;5&quot;,&quot;7&quot;,&quot;2&quot;,null)" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="d7fa9141-5b6a-889c-7154-02c602d17b12">
+      <Execution id="3748ca81-dc0d-4ed6-b296-0499cc207c65" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.RechnerAufDeutschFeature" name="MehrereZahlenAddieren(&quot;2&quot;,&quot;5&quot;,&quot;7&quot;,&quot;2&quot;,null)" />
+    </UnitTest>
+    <UnitTest name="AddManyAAndB(&quot;10&quot;,&quot;20&quot;,&quot;30&quot;,&quot;6&quot;,[&quot;extra&quot;])" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="c7984037-1582-e3b7-2a9f-844d5fa16104">
+      <Execution id="322060fd-c010-43d9-8c86-3061656deb7f" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="AddManyAAndB(&quot;10&quot;,&quot;20&quot;,&quot;30&quot;,&quot;6&quot;,[&quot;extra&quot;])" />
+    </UnitTest>
+    <UnitTest name="SubtractInsideARule" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="8e605eb0-fe65-1102-7fd3-2ba27a4db7b5">
+      <Execution id="39583f48-d85e-4807-87f6-638f439f0f95" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="SubtractInsideARule" />
+    </UnitTest>
+    <UnitTest name="ZweiZahlenAddieren" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="1ce7b357-e929-214a-82a4-905232672f30">
+      <Execution id="9bc3cc6c-c09a-4551-b632-bbab09cbbb38" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.RechnerAufDeutschFeature" name="ZweiZahlenAddieren" />
+    </UnitTest>
+    <UnitTest name="AddManyAAndB(&quot;4&quot;,&quot;5&quot;,&quot;9&quot;,&quot;5&quot;,null)" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="fa17addd-d909-9905-71c4-0903b19a0db2">
+      <Execution id="018551c0-4055-4a52-9746-1e3403c8d77a" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="AddManyAAndB(&quot;4&quot;,&quot;5&quot;,&quot;9&quot;,&quot;5&quot;,null)" />
+    </UnitTest>
+    <UnitTest name="Unicodeスカラー" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="41234771-b37c-1c5b-86e9-8ece295f6b0b">
+      <Execution id="394e0002-ffee-46d3-a90d-02f8ec65b70d" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="Unicodeスカラー" />
+    </UnitTest>
+    <UnitTest name="MehrereZahlenAddieren(&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,null)" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="2668fb4c-cb67-2091-4d7c-7aef9bca4e45">
+      <Execution id="869d2b9e-3c45-459f-92ae-76c4c3a26480" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.RechnerAufDeutschFeature" name="MehrereZahlenAddieren(&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,null)" />
+    </UnitTest>
+    <UnitTest name="IvansQuotedTrickyOddTitle" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="e305ac81-0e12-1d12-3543-41bec8499bb9">
+      <Execution id="60c9169f-fba1-4edd-a49a-fe6c445f723d" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="IvansQuotedTrickyOddTitle" />
+    </UnitTest>
+    <UnitTest name="AddTwoNumbers" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="ffe42ca3-18ce-91dd-e2bd-9993b95565b3">
+      <Execution id="ddc1beeb-fbd5-4b90-9676-d3c954164e90" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="AddTwoNumbers" />
+    </UnitTest>
+    <UnitTest name="AddManyAAndB(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,null)" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="4c6bba4d-6cb1-d1ae-d70c-e4942c913b35">
+      <Execution id="5ec44833-1023-46c2-8cce-88a65b6dafba" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="AddManyAAndB(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,null)" />
+    </UnitTest>
+    <UnitTest name="MultiplyTwoNumbers" storage="/workspace/reqnroll-runner/samples/samplecalculator/samplecalculator.nunit/bin/debug/net8.0/samplecalculator.nunit.dll" id="b3d844ee-5900-0aca-1b31-783041327f0f">
+      <Execution id="4a37b15f-2cd2-4f3c-8eef-b113dce158c5" />
+      <TestMethod codeBase="/workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll" adapterTypeName="executor://nunit3testexecutor/" className="SampleCalculator.Features.CalculatorBasicMoreFeature" name="MultiplyTwoNumbers" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="e305ac81-0e12-1d12-3543-41bec8499bb9" executionId="60c9169f-fba1-4edd-a49a-fe6c445f723d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b3d844ee-5900-0aca-1b31-783041327f0f" executionId="4a37b15f-2cd2-4f3c-8eef-b113dce158c5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4c6bba4d-6cb1-d1ae-d70c-e4942c913b35" executionId="5ec44833-1023-46c2-8cce-88a65b6dafba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c7984037-1582-e3b7-2a9f-844d5fa16104" executionId="322060fd-c010-43d9-8c86-3061656deb7f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="41234771-b37c-1c5b-86e9-8ece295f6b0b" executionId="394e0002-ffee-46d3-a90d-02f8ec65b70d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ffe42ca3-18ce-91dd-e2bd-9993b95565b3" executionId="ddc1beeb-fbd5-4b90-9676-d3c954164e90" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ce7b357-e929-214a-82a4-905232672f30" executionId="9bc3cc6c-c09a-4551-b632-bbab09cbbb38" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d7fa9141-5b6a-889c-7154-02c602d17b12" executionId="3748ca81-dc0d-4ed6-b296-0499cc207c65" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8e605eb0-fe65-1102-7fd3-2ba27a4db7b5" executionId="39583f48-d85e-4807-87f6-638f439f0f95" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa17addd-d909-9905-71c4-0903b19a0db2" executionId="018551c0-4055-4a52-9746-1e3403c8d77a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2668fb4c-cb67-2091-4d7c-7aef9bca4e45" executionId="869d2b9e-3c45-459f-92ae-76c4c3a26480" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="11" executed="11" passed="11" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>NUnit Adapter 4.6.0.0: Test execution started
+Running all tests in /workspace/reqnroll-runner/samples/SampleCalculator/SampleCalculator.NUnit/bin/Debug/net8.0/SampleCalculator.NUnit.dll
+   NUnit3TestExecutor discovered 11 of 11 NUnit test cases using Current Discovery mode, Non-Explicit run
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 1
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+And I entered 2
+-&gt; done: CalculatorSteps.GivenIEntered(2) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 3
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(3) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 4
+-&gt; done: CalculatorSteps.GivenIEntered(4) (0.0s)
+And I entered 5
+-&gt; done: CalculatorSteps.GivenIEntered(5) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 9
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(9) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 10
+-&gt; done: CalculatorSteps.GivenIEntered(10) (0.0s)
+And I entered 20
+-&gt; done: CalculatorSteps.GivenIEntered(20) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 30
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(30) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 50
+-&gt; done: CalculatorSteps.GivenIEntered(50) (0.0s)
+And I entered 70
+-&gt; done: CalculatorSteps.GivenIEntered(70) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 120
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(120) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 1
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+And I entered 1
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 2
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(2) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 6
+-&gt; done: CalculatorSteps.GivenIEntered(6) (0.0s)
+And I entered 7
+-&gt; done: CalculatorSteps.GivenIEntered(7) (0.0s)
+When I press multiply
+-&gt; done: CalculatorSteps.WhenIPressMultiply() (0.0s)
+Then the result should be 42
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(42) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 9
+-&gt; done: CalculatorSteps.GivenIEntered(9) (0.0s)
+And I entered 4
+-&gt; done: CalculatorSteps.GivenIEntered(4) (0.0s)
+When I press subtract
+-&gt; done: CalculatorSteps.WhenIPressSubtract() (0.0s)
+Then the result should be 5
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(5) (0.0s)
+
+Given the calculator is on
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Given I entered 2
+-&gt; done: CalculatorSteps.GivenIEntered(2) (0.0s)
+And I entered 3
+-&gt; done: CalculatorSteps.GivenIEntered(3) (0.0s)
+When I press add
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Then the result should be 5
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(5) (0.0s)
+
+Angenommen der Rechner ist eingeschaltet
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Angenommen ich habe 1 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+Und ich habe 1 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(1) (0.0s)
+Wenn ich auf addieren drücke
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Dann sollte das Ergebnis 2 sein
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(2) (0.0s)
+
+Angenommen der Rechner ist eingeschaltet
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Angenommen ich habe 2 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(2) (0.0s)
+Und ich habe 5 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(5) (0.0s)
+Wenn ich auf addieren drücke
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Dann sollte das Ergebnis 7 sein
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(7) (0.0s)
+
+Angenommen der Rechner ist eingeschaltet
+-&gt; done: CalculatorSteps.GivenTheCalculatorIsOn() (0.0s)
+Angenommen ich habe 3 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(3) (0.0s)
+Und ich habe 4 eingegeben
+-&gt; done: CalculatorSteps.GivenIEntered(4) (0.0s)
+Wenn ich auf addieren drücke
+-&gt; done: CalculatorSteps.WhenIPressAdd() (0.0s)
+Dann sollte das Ergebnis 7 sein
+-&gt; done: CalculatorSteps.ThenTheResultShouldBe(7) (0.0s)
+
+NUnit Adapter 4.6.0.0: Test execution complete
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SampleCalculator.MsTest</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Reqnroll.MsTest" Version="3.3.4" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.1" />
+  </ItemGroup>
+</Project>

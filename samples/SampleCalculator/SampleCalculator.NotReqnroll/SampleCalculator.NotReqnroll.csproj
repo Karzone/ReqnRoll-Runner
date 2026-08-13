@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SPEC §6 case 5: a project that contains a .feature file but references no Reqnroll package.
+    The runner must refuse this loudly ("no Reqnroll.* package reference found in ...") rather than
+    build a filter that could never match anything.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SampleCalculator.NotReqnroll</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

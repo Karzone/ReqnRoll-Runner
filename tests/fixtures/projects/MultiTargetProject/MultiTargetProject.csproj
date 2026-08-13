@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SPEC §3.2: multi-targeted project. v1 defaults to the first TFM and warns. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net472</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Reqnroll.NUnit" Version="3.3.4" />
+  </ItemGroup>
+</Project>

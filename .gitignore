@@ -1,0 +1,37 @@
+## .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+.idea/
+*.trx
+TestResults/
+# ...except the checked-in TRX fixtures, which are captured runner output the parser is tested against.
+!tests/fixtures/trx/*.trx
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+
+## VSIX
+*.vsix
+*.binlog
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Reqnroll generated code-behind — regenerated on every build.
+## Kept out of source control everywhere EXCEPT the checked-in test fixtures,
+## which are deliberate, hand-curated inputs for the code-behind reader.
+*.feature.cs
+!tests/fixtures/**/*.feature.cs
+*.feature.ndjson

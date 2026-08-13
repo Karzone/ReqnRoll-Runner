@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 so BOTH the net472 VSIX and the net8.0 CLI can consume this. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>ReqnrollRunner.Core</RootNamespace>
+    <AssemblyName>ReqnrollRunner.Core</AssemblyName>
+    <!-- Warnings are errors in Core only (SPEC §9). -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Gherkin" Version="42.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- So tests can pin internals such as the exact VSTest zero-match marker we scrape. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>ReqnrollRunner.Core.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

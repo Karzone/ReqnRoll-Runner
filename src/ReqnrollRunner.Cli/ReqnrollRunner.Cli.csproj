@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>ReqnrollRunner.Cli</RootNamespace>
+    <AssemblyName>reqnroll-runner</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Packable as a global tool: `dotnet tool install -g ReqnrollRunner.Cli`. -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>reqnroll-runner</ToolCommandName>
+    <PackageId>ReqnrollRunner.Cli</PackageId>
+    <Description>Map, run and debug Reqnroll scenarios from a .feature file and line number.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReqnrollRunner.Core\ReqnrollRunner.Core.csproj" />
+  </ItemGroup>
+
+</Project>
