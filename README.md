@@ -17,7 +17,7 @@ Windows and publishes it as a build artifact:
 2. Scroll to **Artifacts** → download **`ReqnrollRunner-vsix`**
 3. Unzip it and double-click the `.vsix`, then restart Visual Studio
 
-Requires Visual Studio 2022 (17.x). No development environment or clone needed — the artifact is a
+Requires Visual Studio 2022 (17.x) or 2026 (18.x). No development environment or clone needed — the artifact is a
 complete, installable extension, and CI checks each build actually contains its payload rather than
 merely compiling.
 
@@ -30,7 +30,8 @@ Then, in your own solution:
 - open a `.feature` file, put the caret on a scenario, right-click.
 
 > **Status:** the mapping engine is thoroughly tested and CI packages the extension on every push,
-> but the extension has not yet been exercised in a real Visual Studio session. See
+> but the extension has not yet been exercised in a real Visual Studio session. The manifest
+> accepts VS 2026 (18.x); that widening is unverified — nobody has loaded it there yet. See
 > [docs/manual-testing.md](docs/manual-testing.md). If something misbehaves, please
 > [open an issue](https://github.com/Karzone/ReqnRoll-Runner/issues) — include the output of
 > `reqnroll-runner map`, which shows what was resolved without running anything.
@@ -82,9 +83,9 @@ tests in every case — measured, not assumed. This also sidesteps MSTest's frie
 | Path | What it is |
 |---|---|
 | `src/ReqnrollRunner.Core` | All the real logic. `netstandard2.0`, **zero Visual Studio dependencies**. |
-| `src/ReqnrollRunner.Vsix` | The VS 2022 extension. Classic VSSDK, in-process, Windows-only build. |
+| `src/ReqnrollRunner.Vsix` | The extension. VS 2022 and 2026, classic VSSDK, in-process, Windows-only build. |
 | `src/ReqnrollRunner.Cli` | `reqnroll-runner` — a thin console over Core. |
-| `tests/ReqnrollRunner.Core.Tests` | xUnit. 224 tests, the bulk of the coverage. |
+| `tests/ReqnrollRunner.Core.Tests` | xUnit. 264 tests, the bulk of the coverage. |
 | `tests/fixtures` | Feature files, captured TRX files and real generated code-behind. |
 | `samples/SampleCalculator` | Working Reqnroll projects — NUnit, xUnit and MSTest variants. |
 | `build/VsixCompileCheck` | Compiles the VSIX's C# on any platform so CI catches breakage. |
@@ -92,8 +93,8 @@ tests in every case — measured, not assumed. This also sidesteps MSTest's frie
 There are two solutions on purpose:
 
 * **`ReqnrollRunner.sln`** — Core, CLI, tests, VSIX compile check. Builds anywhere, including Linux CI.
-* **`ReqnrollRunner.VisualStudio.sln`** — Core + the VSIX. Windows, VS 2022, "Visual Studio extension
-  development" workload.
+* **`ReqnrollRunner.VisualStudio.sln`** — Core + the VSIX. Windows, VS 2022 or later, "Visual Studio
+  extension development" workload.
 
 ## Using the CLI
 

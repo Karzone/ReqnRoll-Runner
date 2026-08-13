@@ -9,7 +9,8 @@ Expect it to take about fifteen minutes the first time.
 
 ## What you need
 
-- **Windows** with **Visual Studio 2022** (17.x)
+- **Windows** with **Visual Studio 2022** (17.x). VS 2026 (18.x) is accepted by the manifest but
+  unverified — see the VS 2026 section at the end.
 - The **Visual Studio extension development** workload — Visual Studio Installer → Modify →
   Workloads. Without it, `ReqnrollRunner.Vsix.csproj` will not load at all.
 - The **.NET 8 SDK**, and `dotnet` on `PATH` (`dotnet --version` in a terminal).
@@ -149,6 +150,22 @@ wrong, it is in Core — and Core is testable without Visual Studio, which makes
 **The debugger will not attach.** The pane lists every engine that was tried and why each failed.
 `DebuggerAttacher` tries `Managed (CoreCLR)`, then the .NET Framework engine, then plain `Attach()`.
 A .NET Framework test project failing is the case most likely to need a different engine name.
+
+## Visual Studio 2026 (18.x)
+
+The manifest accepts `[17.0,19.0)`, so the `.vsix` will install into VS 2026 — but installing is not
+the same as working. If you have 2026 available, the whole Run and Debug tables above need repeating there, and
+these two are the ones to watch:
+
+- **Does the package load at all?** VS 2026 continues to support in-process VSSDK extensions, but
+  Microsoft is steering extensions toward out-of-process `VisualStudio.Extensibility`. If the package
+  fails to load, `ActivityLog.xml` will say so and that is a real port, not a manifest tweak.
+- **Does the debugger attach?** `DebuggerAttacher` asks DTE for `LocalProcesses` and calls `Attach2`
+  with a named engine. Engine names are the sort of thing that changes between major versions; the
+  output pane lists every engine tried and why each failed, so a failure here should be legible.
+
+If either breaks, say so on #5 rather than widening or narrowing the range again — the manifest is
+not where that problem lives.
 
 ## Signing off
 

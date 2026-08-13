@@ -15,11 +15,20 @@ A community project. Not affiliated with, or endorsed by, the official Reqnroll 
     <Tags>Reqnroll, BDD, Gherkin, SpecFlow, Test, Feature, Cucumber</Tags>
   </Metadata>
 
+  <!--
+    [17.0,19.0) covers Visual Studio 2022 (17.x) and Visual Studio 2026 (18.x).
+
+    The extension is built against the 17.x SDK and loads in both; widening this range is the
+    documented way to opt an existing VSIX into a newer major version. What it does NOT do is prove
+    anything works there — see the note in docs/manual-testing.md. The two parts most likely to need
+    attention in 18.x are the in-process VSSDK model itself, which Microsoft is steering extensions
+    away from in favour of out-of-process VisualStudio.Extensibility, and the DTE debugger attach.
+  -->
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
       <ProductArchitecture>arm64</ProductArchitecture>
     </InstallationTarget>
   </Installation>
@@ -29,7 +38,7 @@ A community project. Not affiliated with, or endorsed by, the official Reqnroll 
   </Dependencies>
 
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 
   <Assets>
