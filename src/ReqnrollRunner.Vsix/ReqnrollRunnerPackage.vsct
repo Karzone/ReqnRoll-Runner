@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+
+  <Commands package="guidReqnrollRunnerPackage">
+
+    <Groups>
+      <!--
+        Our own group inside the code-window context menu. Giving the commands a dedicated group
+        keeps them together and separated by a line from Visual Studio's own entries.
+      -->
+      <Group guid="guidReqnrollRunnerCmdSet" id="FeatureContextGroup" priority="0x0100">
+        <Parent guid="guidVSUIElements" id="IDM_VS_CTXT_CODEWIN" />
+      </Group>
+
+      <!-- Same commands under Tools, so they are reachable from Ctrl+Q and bindable to a shortcut. -->
+      <Group guid="guidReqnrollRunnerCmdSet" id="ToolsMenuGroup" priority="0x0600">
+        <Parent guid="guidVSUIElements" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <!--
+        DynamicVisibility + DefaultInvisible: the command is hidden until the
+        UIContextFeatureFile rule below turns it on, which happens only while a .feature file is the
+        active document. Visual Studio's own run/debug commands are hard-coded to .cs and cannot be
+        extended (Reqnroll discussion #270), which is exactly why these exist as separate commands
+        with their own execution path rather than as an attempt to reuse Ctrl+R,T.
+      -->
+      <Button guid="guidReqnrollRunnerCmdSet" id="cmdidRunScenario" priority="0x0100" type="Button">
+        <Parent guid="guidReqnrollRunnerCmdSet" id="FeatureContextGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Run Reqnroll Scenario</ButtonText>
+          <CanonicalName>Reqnroll Runner.Run Scenario</CanonicalName>
+          <LocCanonicalName>Reqnroll Runner.Run Scenario</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidReqnrollRunnerCmdSet" id="cmdidDebugScenario" priority="0x0101" type="Button">
+        <Parent guid="guidReqnrollRunnerCmdSet" id="FeatureContextGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Debug Reqnroll Scenario</ButtonText>
+          <CanonicalName>Reqnroll Runner.Debug Scenario</CanonicalName>
+          <LocCanonicalName>Reqnroll Runner.Debug Scenario</LocCanonicalName>
+        </Strings>
+      </Button>
+    </Buttons>
+
+  </Commands>
+
+  <CommandPlacements>
+    <!-- Reuse the same two buttons under Tools rather than declaring them twice. -->
+    <CommandPlacement guid="guidReqnrollRunnerCmdSet" id="cmdidRunScenario" priority="0x0100">
+      <Parent guid="guidReqnrollRunnerCmdSet" id="ToolsMenuGroup" />
+    </CommandPlacement>
+    <CommandPlacement guid="guidReqnrollRunnerCmdSet" id="cmdidDebugScenario" priority="0x0101">
+      <Parent guid="guidReqnrollRunnerCmdSet" id="ToolsMenuGroup" />
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <!--
+    Deliberately NO <VisibilityConstraints> here. A VisibilityItem would gate the commands on a UI
+    context, but the only context that tracks the active document's type is
+    ActiveEditorContentType, and the content type of a .feature file depends on whether the official
+    Reqnroll extension is installed (without it, the file opens as plain text). Declaring a
+    VisibilityItem also stops Visual Studio routing QueryStatus to us at all, so it cannot be
+    combined with a code-side check. Visibility is therefore decided in
+    ScenarioCommandHandler.BeforeQueryStatus, which inspects the active document's extension
+    directly and works either way.
+  -->
+
+  <Symbols>
+    <GuidSymbol name="guidReqnrollRunnerPackage" value="{da7f88d0-dc3e-49a7-b3e8-d7e088ba9205}" />
+
+    <GuidSymbol name="guidReqnrollRunnerCmdSet" value="{b3946a18-f113-4e10-be68-2d394f82eb6e}">
+      <IDSymbol name="FeatureContextGroup" value="0x1020" />
+      <IDSymbol name="ToolsMenuGroup" value="0x1021" />
+      <IDSymbol name="cmdidRunScenario" value="0x0100" />
+      <IDSymbol name="cmdidDebugScenario" value="0x0101" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidFeatureFileUIContext" value="{15d8f166-4fb2-4e82-b1b1-beb829088adf}" />
+
+    <GuidSymbol name="guidVSUIElements" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
+      <IDSymbol name="IDM_VS_CTXT_CODEWIN" value="0x040D" />
+      <IDSymbol name="IDM_VS_MENU_TOOLS" value="0x0085" />
+    </GuidSymbol>
+  </Symbols>
+
+</CommandTable>

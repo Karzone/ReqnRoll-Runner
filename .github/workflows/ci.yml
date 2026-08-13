@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore ReqnrollRunner.sln
+
+      # Builds Core, the CLI, the tests, and — via build/VsixCompileCheck — the extension's C#
+      # against VSSDK reference assemblies. The VSIX itself cannot be packaged here (classic VSSDK
+      # projects need Windows and the VS extension development workload); that is a later stage.
+      - name: Build
+        run: dotnet build ReqnrollRunner.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ReqnrollRunner.sln --configuration Release --no-build --logger "trx;LogFileName=core-tests.trx" --results-directory artifacts/test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: warn
+
+  samples-end-to-end:
+    name: End-to-end against the samples
+    runs-on: ubuntu-latest
+
+    # The unit tests prove the mapping in isolation. This job proves the whole chain: build a real
+    # Reqnroll project, ask the CLI what a caret position maps to, run it, and check the right number
+    # of tests actually executed. A filter that quietly matched nothing would pass every unit test.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sample: SampleCalculator.NUnit
+            runner: NUnit
+          - sample: SampleCalculator.XUnit
+            runner: xUnit
+          - sample: SampleCalculator.MsTest
+            runner: MSTest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build the CLI
+        run: dotnet build src/ReqnrollRunner.Cli --configuration Release
+
+      - name: Build the ${{ matrix.runner }} sample
+        run: dotnet build samples/SampleCalculator/${{ matrix.sample }} --configuration Release
+
+      - name: Map a scenario
+        run: >
+          dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build --
+          map --file samples/SampleCalculator/${{ matrix.sample }}/Features/Calculator.feature --line 10
+
+      - name: Run a single scenario, an outline and the whole feature
+        shell: bash
+        run: |
+          set -euo pipefail
+          feature="samples/SampleCalculator/${{ matrix.sample }}/Features/Calculator.feature"
+
+          # line 10 = one Scenario, line 34 = a Scenario Outline (3 example rows),
+          # line 1  = the Feature: header (all 8 generated tests).
+          declare -A expected=([10]=1 [34]=3 [1]=8)
+
+          for line in 10 34 1; do
+            echo "::group::line $line"
+            output=$(dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
+              run --file "$feature" --line "$line" --no-build --json)
+            echo "$output"
+            echo "::endgroup::"
+
+            passed=$(echo "$output" | python3 -c "import json,sys; print(json.load(sys.stdin)['passed'])")
+            want=${expected[$line]}
+
+            if [ "$passed" != "$want" ]; then
+              echo "::error::line $line ran $passed tests, expected $want"
+              exit 1
+            fi
+            echo "line $line: $passed passed, as expected"
+          done
+
+      - name: Reject a project with no Reqnroll reference
+        shell: bash
+        run: |
+          set -uo pipefail
+          # The error path matters as much as the happy one: this must fail loudly, not silently pass.
+          if dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
+              map --file samples/SampleCalculator/SampleCalculator.NotReqnroll/Features/Calculator.feature --line 10; then
+            echo "::error::mapping a non-Reqnroll project should have failed"
+            exit 1
+          fi
+          echo "correctly refused"

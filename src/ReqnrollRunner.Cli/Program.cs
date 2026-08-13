@@ -25,6 +25,13 @@ namespace ReqnrollRunner.Cli
         {
             WriteIndented = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+
+            // camelCase because this is the wire contract the planned VS Code head consumes
+            // (SPEC §8), and it is idiomatic there.
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+
+            // Scenario titles and generated method names carry non-ASCII (Unicodeスカラー); escaping
+            // it would make the output unreadable for no benefit.
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 

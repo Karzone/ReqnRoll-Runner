@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{40FD565E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReqnrollRunner.Core.Tests", "tests\ReqnrollRunner.Core.Tests\ReqnrollRunner.Core.Tests.csproj", "{4BF65795-AA23-42F9-AAA5-37474B4D2203}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{8FAE185A-0E11-4601-9B0F-FB5DB40049FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VsixCompileCheck", "build\VsixCompileCheck\VsixCompileCheck.csproj", "{39BDFD07-C92C-400D-ADD3-201BCDAC0B61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +38,15 @@ Global
 		{4BF65795-AA23-42F9-AAA5-37474B4D2203}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BF65795-AA23-42F9-AAA5-37474B4D2203}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BF65795-AA23-42F9-AAA5-37474B4D2203}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39BDFD07-C92C-400D-ADD3-201BCDAC0B61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39BDFD07-C92C-400D-ADD3-201BCDAC0B61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39BDFD07-C92C-400D-ADD3-201BCDAC0B61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39BDFD07-C92C-400D-ADD3-201BCDAC0B61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{AB45B5E9-E69E-4103-9DAE-0D387FD11EEF} = {6F522B79-4772-44F6-819C-0AEF34F868FC}
 		{009191F2-92F5-457E-B518-4B9D78F9EF69} = {6F522B79-4772-44F6-819C-0AEF34F868FC}
 		{4BF65795-AA23-42F9-AAA5-37474B4D2203} = {40FD565E-79C4-4BB8-A6E2-E53A571DB24C}
+		{39BDFD07-C92C-400D-ADD3-201BCDAC0B61} = {8FAE185A-0E11-4601-9B0F-FB5DB40049FC}
 	EndGlobalSection
 EndGlobal

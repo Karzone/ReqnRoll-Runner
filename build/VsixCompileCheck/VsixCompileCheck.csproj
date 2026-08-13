@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Compiles the VSIX's C# sources on any platform, including Linux CI.
+
+    Why this exists: src/ReqnrollRunner.Vsix is a classic (non-SDK) VSSDK project, so it can only be
+    built on Windows with the Visual Studio extension development workload. Left at that, the
+    extension's code would never be compiled by CI and would quietly rot — a rename in
+    ReqnrollRunner.Core would break it and nobody would find out until someone opened Visual Studio.
+
+    This project compiles the SAME .cs files (linked, not copied — there is no duplicated source)
+    against the real VSSDK reference assemblies from NuGet plus the .NET Framework reference
+    assemblies package. It produces no VSIX and is never shipped.
+
+    What it does NOT verify, and what still needs a Windows machine:
+      * the .vsct command table compiling, and where the commands actually land in the menus
+      * VSIX packaging and manifest validity
+      * anything at run time — DTE attach, the output pane, the options page
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>ReqnrollRunner.Vsix</RootNamespace>
+    <AssemblyName>ReqnrollRunner.Vsix.CompileCheck</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Reference assemblies come from NuGet, so no .NET Framework install is required. -->
+    <AutomaticallyUseReferenceAssemblyPackages>true</AutomaticallyUseReferenceAssemblyPackages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\ReqnrollRunner.Vsix\*.cs" LinkBase="Vsix" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- OleMenuCommandService's base class lives in System.Design. -->
+    <Reference Include="System.Design" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.37000" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ReqnrollRunner.Core\ReqnrollRunner.Core.csproj" />
+  </ItemGroup>
+
+</Project>
