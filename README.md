@@ -8,6 +8,33 @@ generated test executes, and breakpoints in your step definitions hit.
 > Studio extension. It is designed to be installed *alongside* it: this extension adds no editor
 > features of its own — no syntax highlighting, no IntelliSense, no Go To Definition.
 
+## Installing
+
+There is no Marketplace release yet. Until there is, every push to `main` builds the extension on
+Windows and publishes it as a build artifact:
+
+1. Open the [latest CI run](https://github.com/Karzone/ReqnRoll-Runner/actions?query=branch%3Amain)
+2. Scroll to **Artifacts** → download **`ReqnrollRunner-vsix`**
+3. Unzip it and double-click the `.vsix`, then restart Visual Studio
+
+Requires Visual Studio 2022 (17.x). No development environment or clone needed — the artifact is a
+complete, installable extension, and CI checks each build actually contains its payload rather than
+merely compiling.
+
+Then, in your own solution:
+
+- the test project needs a `Reqnroll.NUnit`, `Reqnroll.xUnit` or `Reqnroll.MsTest` reference — the
+  runner says so plainly if it does not;
+- **build it once**, so Reqnroll generates the `.feature.cs` the runner reads. After that the
+  extension builds for you on each run;
+- open a `.feature` file, put the caret on a scenario, right-click.
+
+> **Status:** the mapping engine is thoroughly tested and CI packages the extension on every push,
+> but the extension has not yet been exercised in a real Visual Studio session. See
+> [docs/manual-testing.md](docs/manual-testing.md). If something misbehaves, please
+> [open an issue](https://github.com/Karzone/ReqnRoll-Runner/issues) — include the output of
+> `reqnroll-runner map`, which shows what was resolved without running anything.
+
 ## Why this exists
 
 Requested in [Reqnroll discussion #270](https://github.com/reqnroll/Reqnroll/discussions/270)
