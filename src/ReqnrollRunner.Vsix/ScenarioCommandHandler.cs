@@ -50,6 +50,10 @@ namespace ReqnrollRunner.Vsix
                 ReqnrollRunnerGuids.RunScenarioCommandId, debug: false));
             commandService.AddCommand(handler.CreateCommand(
                 ReqnrollRunnerGuids.DebugScenarioCommandId, debug: true));
+
+            // Clicks on the editor adornments come through here too, so there is exactly one
+            // execution path with two ways to reach it.
+            Adornments.ScenarioRunRequest.Requested += handler.OnAdornmentRequest;
         }
 
         private OleMenuCommand CreateCommand(int commandId, bool debug)
@@ -173,6 +177,16 @@ namespace ReqnrollRunner.Vsix
             }
         }
 
+        /// <summary>Entry point for a click on a <c>Run</c> / <c>Debug</c> adornment.</summary>
+        private void OnAdornmentRequest(string filePath, int line, bool debug)
+        {
+            _package.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await _package.JoinableTaskFactory.SwitchToMainThreadAsync();
+                StartRun(new CaretPosition(filePath, line), debug);
+            }).FileAndForget("reqnrollrunner/adornment/execute");
+        }
+
         private void Execute(bool debug)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -191,6 +205,20 @@ namespace ReqnrollRunner.Vsix
                 _package.OutputPane.StartRun("Reqnroll Runner");
                 _package.OutputPane.WriteLine("There is no active document, so there is no scenario to run.");
                 _package.OutputPane.Activate();
+                return;
+            }
+
+            StartRun(caret, debug);
+        }
+
+        private void StartRun(CaretPosition caret, bool debug)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_currentRun != null)
+            {
+                _package.OutputPane.WriteLine("Cancelling the run already in progress…");
+                _currentRun.Cancel();
                 return;
             }
 

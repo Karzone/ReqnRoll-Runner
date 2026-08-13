@@ -69,11 +69,20 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
+    <!-- MEF: the editor adornments are composed parts. -->
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <!-- WPF, for the scenario adornments. -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Adornments\ScenarioActionsAdornment.cs" />
+    <Compile Include="Adornments\ScenarioActionsTextViewListener.cs" />
     <Compile Include="DebuggerAttacher.cs" />
     <Compile Include="EditorContext.cs" />
     <Compile Include="ReqnrollRunnerGuids.cs" />

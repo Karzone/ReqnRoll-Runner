@@ -31,6 +31,14 @@
       -->
       <Button guid="guidReqnrollRunnerCmdSet" id="cmdidRunScenario" priority="0x0100" type="Button">
         <Parent guid="guidReqnrollRunnerCmdSet" id="FeatureContextGroup" />
+        <!--
+          Icons come from Visual Studio's own image catalog rather than a bitmap we ship. That means
+          no image strip to keep in step, and the glyphs are automatically correct in light, dark and
+          high-contrast themes. It also sidesteps the trademark question: we deliberately do NOT use
+          Reqnroll's mark, since this extension disclaims any affiliation.
+        -->
+        <Icon guid="guidImageCatalog" id="RunTest" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
@@ -43,6 +51,8 @@
 
       <Button guid="guidReqnrollRunnerCmdSet" id="cmdidDebugScenario" priority="0x0101" type="Button">
         <Parent guid="guidReqnrollRunnerCmdSet" id="FeatureContextGroup" />
+        <Icon guid="guidImageCatalog" id="DebugSelection" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
@@ -88,6 +98,16 @@
     </GuidSymbol>
 
     <GuidSymbol name="guidFeatureFileUIContext" value="{15d8f166-4fb2-4e82-b1b1-beb829088adf}" />
+
+    <!--
+      Visual Studio's built-in image catalog. Both the guid and the two ids were read out of
+      Microsoft.VisualStudio.ImageCatalog.dll rather than copied from memory:
+      KnownImageIds.RunTest = 2654, KnownImageIds.DebugSelection = 892.
+    -->
+    <GuidSymbol name="guidImageCatalog" value="{ae27a6b0-e345-4288-96df-5eaf394ee369}">
+      <IDSymbol name="RunTest" value="2654" />
+      <IDSymbol name="DebugSelection" value="892" />
+    </GuidSymbol>
 
     <GuidSymbol name="guidVSUIElements" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
       <IDSymbol name="IDM_VS_CTXT_CODEWIN" value="0x040D" />

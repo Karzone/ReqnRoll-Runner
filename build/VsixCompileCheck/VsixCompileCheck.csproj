@@ -30,12 +30,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\ReqnrollRunner.Vsix\*.cs" LinkBase="Vsix" />
+    <!-- Recursive: a non-recursive glob silently stopped covering the Adornments folder the
+         moment it was added, which defeats the entire point of this project. -->
+    <Compile Include="..\..\src\ReqnrollRunner.Vsix\**\*.cs" LinkBase="Vsix" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- OleMenuCommandService's base class lives in System.Design. -->
     <Reference Include="System.Design" />
+    <!-- MEF: the editor adornments are composed parts. -->
+    <Reference Include="System.ComponentModel.Composition" />
+    <!--
+      The editor adornments are WPF. UseWPF is not an option here: it pulls in the WindowsDesktop
+      SDK, which does not exist on Linux. Referencing the WPF assemblies directly works, because
+      Microsoft.NETFramework.ReferenceAssemblies ships them as reference assemblies.
+    -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
   </ItemGroup>
 
   <ItemGroup>
