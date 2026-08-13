@@ -116,6 +116,62 @@ jobs:
             echo "line $line: $passed passed, as expected"
           done
 
+      - name: Every scenario runs on its own and maps to a distinct method
+        shell: bash
+        run: |
+          set -uo pipefail
+          feature="samples/SampleCalculator/${{ matrix.sample }}/Features/Calculator.feature"
+
+          # Sweep every scenario in the file rather than the three lines checked above. Two things
+          # are asserted that per-line checks cannot see: that no two scenarios collide onto the same
+          # generated method (which would silently run the wrong test), and that running each one
+          # separately accounts for exactly the same 8 tests the whole feature runs.
+          lines=$(grep -nE '^[[:space:]]*(Scenario|Scenario Outline):' "$feature" | cut -d: -f1)
+          total=0
+          # An array, not a newline-joined string: quoting a literal newline into a shell variable is
+          # easy to get subtly wrong, and a broken accumulator makes the collision check below pass
+          # vacuously rather than fail.
+          methods=()
+
+          for line in $lines; do
+            output=$(dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
+              run --file "$feature" --line "$line" --no-build --configuration Release --json 2>&1)
+            status=$?
+            if [ $status -ne 0 ]; then
+              echo "::error::line $line exited $status"; echo "$output" | tail -20; exit 1
+            fi
+
+            read -r method passed <<<"$(echo "$output" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['mapping']['testMethod'], d['passed'])")"
+
+            if [ "$passed" -lt 1 ]; then
+              echo "::error::scenario on line $line ran no tests"; exit 1
+            fi
+
+            echo "  line $line -> $method ($passed passed)"
+            total=$((total + passed))
+            methods+=("$method")
+          done
+
+          count=${#methods[@]}
+          distinct=$(printf '%s\n' "${methods[@]}" | sort -u | wc -l)
+
+          if [ "$count" -lt 6 ]; then
+            echo "::error::only found $count scenarios to sweep, expected at least 6"
+            exit 1
+          fi
+
+          if [ "$distinct" != "$count" ]; then
+            echo "::error::two scenarios map to the same generated method ($count scenarios, $distinct distinct methods)"
+            printf '%s\n' "${methods[@]}" | sort | uniq -d
+            exit 1
+          fi
+
+          if [ "$total" != "8" ]; then
+            echo "::error::scenarios ran $total tests in total, expected 8 (5 scenarios + a 3-row outline)"
+            exit 1
+          fi
+          echo "$count scenarios, $distinct distinct methods, $total tests total — all as expected"
+
       - name: Reject a project with no Reqnroll reference
         shell: bash
         run: |
@@ -127,3 +183,79 @@ jobs:
             exit 1
           fi
           echo "correctly refused"
+
+  reqnroll-versions:
+    name: Reqnroll ${{ matrix.reqnroll }}
+    runs-on: ubuntu-latest
+
+    # The whole mapping design rests on Reqnroll emitting `#line <n>` as the first statement of every
+    # generated test method. That is observed behaviour, not a documented contract, so a generator
+    # change is the single biggest external risk this project carries. This job is the early warning.
+    #
+    # Verified working across 3.1.2, 3.2.1, 3.3.0 and 3.3.4, so the pinned legs prove real version
+    # robustness today rather than only guarding the future.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - reqnroll: "3.1.2"      # oldest supported
+            required: true
+          - reqnroll: "3.3.4"      # the version the fixtures were captured from
+            required: true
+          - reqnroll: "*"          # floating latest — a canary, not a gate
+            required: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build the CLI
+        run: dotnet build src/ReqnrollRunner.Cli --configuration Release
+
+      - name: Build the sample against Reqnroll ${{ matrix.reqnroll }}
+        id: build
+        continue-on-error: ${{ !matrix.required }}
+        run: >
+          dotnet build samples/SampleCalculator/SampleCalculator.NUnit --configuration Release
+          -p:ReqnrollVersion=${{ matrix.reqnroll }}
+
+      - name: Map and run against Reqnroll ${{ matrix.reqnroll }}
+        if: steps.build.outcome == 'success'
+        continue-on-error: ${{ !matrix.required }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          feature="samples/SampleCalculator/SampleCalculator.NUnit/Features/Calculator.feature"
+          declare -A expected=([10]=1 [34]=3 [1]=8)
+
+          for line in 10 34 1; do
+            output=$(dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
+              run --file "$feature" --line "$line" --no-build --configuration Release --json 2>&1)
+            status=$?
+            if [ $status -ne 0 ]; then
+              echo "::error::CLI exited $status for line $line"; echo "$output" | tail -20; exit 1
+            fi
+
+            read -r strategy passed <<<"$(echo "$output" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['mapping']['filter']['strategy'], d['passed'])")"
+
+            # CodeBehind, not Sanitized: if a new Reqnroll changed where or how it emits #line, the
+            # reader would fall back to reconstructed names and this is where that shows up.
+            if [ "$strategy" != "CodeBehind" ]; then
+              echo "::error::line $line resolved via '$strategy' rather than reading the code-behind"
+              exit 1
+            fi
+
+            if [ "$passed" != "${expected[$line]}" ]; then
+              echo "::error::line $line ran $passed tests, expected ${expected[$line]}"
+              exit 1
+            fi
+            echo "  line $line: $passed passed via $strategy"
+          done
+
+      - name: Note a canary failure without failing the build
+        if: ${{ !matrix.required && (steps.build.outcome == 'failure') }}
+        run: |
+          echo "::warning::The sample does not build against the latest Reqnroll (${{ matrix.reqnroll }}). This does not fail CI, but the mapping layer may need attention."

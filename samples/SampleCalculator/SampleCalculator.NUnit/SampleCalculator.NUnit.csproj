@@ -6,10 +6,18 @@
     <IsPackable>false</IsPackable>
     <!-- Scenario titles here contain deliberate oddities; do not let analyzers fight the sample. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!--
+      Overridable so CI can build these samples against more than one Reqnroll release:
+        dotnet build ... -p:ReqnrollVersion=*
+      The whole design rests on Reqnroll emitting `#line <n>` first in each generated test method,
+      so a generator change is the biggest external risk this project carries. The version matrix in
+      CI is the early warning for it.
+    -->
+    <ReqnrollVersion Condition="'$(ReqnrollVersion)' == ''">3.3.4</ReqnrollVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Reqnroll.NUnit" Version="3.3.4" />
+    <PackageReference Include="Reqnroll.NUnit" Version="$(ReqnrollVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NUnit" Version="4.2.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />

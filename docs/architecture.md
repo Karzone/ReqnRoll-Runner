@@ -205,10 +205,32 @@ reported honestly in the UI rather than silently widened.
 * **Fixtures are captured, not invented.** The code-behind files and two of the three TRX files are
   real generator and runner output. The third TRX is hand-written to cover outcome strings a real
   Reqnroll run does not produce.
+* **Property sweeps over every line.** `CaretSweepTests` does not spot-check positions — it walks
+  every line of every fixture feature and asserts four properties: a line inside a scenario resolves
+  to that scenario (with the span derived from the *Gherkin AST's own node locations*, a different
+  computation from the parser's anchor list, making it a differential test); the target never moves
+  backwards as the caret moves down; a caret only ever reaches *forward* across tags and comments,
+  never across content; and the tags and comments above a scenario do belong to it.
 * **Vacuity guards.** `TestNameSanitizerTests` asserts the corpus has at least 25 rows;
-  `ProjectResolverTests` asserts every fixture project still exists. Both exist because a moved
-  fixture would otherwise turn a theory into a silently-passing no-op.
+  `ProjectResolverTests` asserts every fixture project still exists; the caret sweeps assert they
+  swept at least two lines per scenario. All exist because a moved fixture would otherwise turn a
+  theory into a silently-passing no-op.
+* **The sweeps were mutation-tested.** Three deliberate bugs were introduced into
+  `FeatureFileParser` to check the sweeps actually bite: an off-by-one in anchor selection (caught,
+  4 failures), removing the leading-comment extension (caught), and ignoring tag lines when
+  anchoring (**not** caught at first — which is why
+  `The_tags_and_comments_above_a_scenario_belong_to_it` exists; it now fails with a precise message).
 * **The VSIX is compiled by CI.** `build/VsixCompileCheck` links the same `.cs` files and builds them
   against VSSDK reference assemblies from NuGet, on Linux. It does not produce a VSIX and cannot
   verify the `.vsct`, packaging, or run-time behaviour — but it does stop the extension silently
   rotting when Core changes. The vs-threading analyzers run as part of it.
+* **CI proves execution, not just mapping.** Unit tests can only show the filter is *well-formed*; a
+  filter that matches nothing passes every one of them. So per runner, CI builds a real Reqnroll
+  project and asserts the exact number of tests that ran — 1 for a scenario, 3 for the outline, 8 for
+  the feature — then sweeps every scenario individually, checking each maps to a **distinct**
+  generated method and that the per-scenario counts sum back to the same 8.
+* **A Reqnroll version matrix guards the one assumption everything rests on.** `#line` being emitted
+  first in each generated method is observed behaviour, not a documented contract. CI therefore
+  builds the sample against 3.1.2 and 3.3.4 (both required, both verified working) and against a
+  floating `*` as a non-blocking canary, asserting each still resolves via `CodeBehind` rather than
+  falling back to the sanitizer — which is precisely how a generator change would first show up.
