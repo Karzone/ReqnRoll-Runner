@@ -126,6 +126,14 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+
+  <!--
+    Guarded by Exists(), not just by VSToolsPath being non-empty. VSToolsPath always has a value
+    (MSBuild derives it), so the original condition was effectively always true and the import failed
+    outright on a machine without the "Visual Studio extension development" workload — which includes
+    the GitHub-hosted Windows runners. With Exists(), the build falls back to the VSSDK targets that
+    Microsoft.VSSDK.BuildTools brings in from NuGet, which is what lets CI package the .vsix.
+  -->
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 
 </Project>

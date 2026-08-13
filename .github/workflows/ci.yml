@@ -184,6 +184,74 @@ jobs:
           fi
           echo "correctly refused"
 
+  package-vsix:
+    name: Package the VSIX
+    runs-on: windows-latest
+
+    # The only job that touches Windows, and the only one that can produce something installable.
+    # It also compiles the .vsct command table, which nothing else does — a malformed command table
+    # is otherwise invisible until someone opens Visual Studio and finds a menu item missing.
+    #
+    # The artifact it uploads is how you install the extension without a Windows dev environment:
+    # download it from the run's Artifacts, unzip, double-click the .vsix.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore
+        run: msbuild ReqnrollRunner.VisualStudio.sln -t:Restore -p:Configuration=Release
+
+      # DeployExtension=False: never try to install into the runner's own Visual Studio.
+      - name: Build and package
+        run: msbuild ReqnrollRunner.VisualStudio.sln -p:Configuration=Release -p:DeployExtension=False
+
+      - name: Check a .vsix was actually produced
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem -Path src/ReqnrollRunner.Vsix/bin/Release -Filter *.vsix -ErrorAction SilentlyContinue
+          if (-not $vsix) {
+            Write-Error "No .vsix was produced — the VSSDK packaging targets did not run."
+            exit 1
+          }
+          # A VSIX is a zip; anything tiny means the payload is missing rather than merely built.
+          $vsix | ForEach-Object { Write-Host "  $($_.Name) — $([math]::Round($_.Length / 1KB)) KB" }
+          if ($vsix[0].Length -lt 20KB) {
+            Write-Error "The .vsix is suspiciously small ($($vsix[0].Length) bytes); its payload is probably missing."
+            exit 1
+          }
+
+      - name: Confirm the payload contains what it should
+        shell: pwsh
+        run: |
+          $vsix = (Get-ChildItem -Path src/ReqnrollRunner.Vsix/bin/Release -Filter *.vsix)[0]
+          $extract = Join-Path $env:RUNNER_TEMP 'vsix'
+          Copy-Item $vsix.FullName (Join-Path $env:RUNNER_TEMP 'p.zip')
+          Expand-Archive -Path (Join-Path $env:RUNNER_TEMP 'p.zip') -DestinationPath $extract -Force
+          Get-ChildItem $extract | ForEach-Object { Write-Host "  $($_.Name)" }
+
+          # Gherkin is Core's only dependency and Visual Studio will not resolve it from a NuGet
+          # cache at run time, so its absence would be a load failure for every user.
+          foreach ($required in @('ReqnrollRunner.Vsix.dll', 'ReqnrollRunner.Core.dll', 'Gherkin.dll', 'extension.vsixmanifest')) {
+            if (-not (Test-Path (Join-Path $extract $required))) {
+              Write-Error "The .vsix is missing $required"
+              exit 1
+            }
+            Write-Host "  ok: $required"
+          }
+
+      - name: Upload the .vsix
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReqnrollRunner-vsix
+          path: src/ReqnrollRunner.Vsix/bin/Release/*.vsix
+          if-no-files-found: error
+
   reqnroll-versions:
     name: Reqnroll ${{ matrix.reqnroll }}
     runs-on: ubuntu-latest
