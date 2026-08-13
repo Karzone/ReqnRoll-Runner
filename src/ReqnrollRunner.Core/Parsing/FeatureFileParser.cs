@@ -84,7 +84,7 @@ namespace ReqnrollRunner.Core.Parsing
 
             ScenarioTarget target = hit == null
                 ? WholeFeature(feature)
-                : hit.ToTarget(feature);
+                : hit.ToTarget(feature, line);
 
             return FeatureParseResult.Ok(target, feature.Name ?? string.Empty);
         }
@@ -242,13 +242,31 @@ namespace ReqnrollRunner.Core.Parsing
                 return new Anchor(line, null, rule);
             }
 
-            public ScenarioTarget ToTarget(Feature feature)
+            public ScenarioTarget ToTarget(Feature feature, int caretLine)
             {
                 if (_scenario != null)
                 {
                     // Language-independent: an outline is a scenario that has Examples, whatever the
                     // localized keyword happens to be.
                     bool isOutline = _scenario.Examples != null && _scenario.Examples.Any();
+
+                    if (isOutline)
+                    {
+                        ExampleRowInfo? row = FindExampleRow(_scenario, caretLine);
+                        if (row != null)
+                        {
+                            // Line stays the OUTLINE's keyword line — it is the join key to the
+                            // generated method, and every row shares that one method.
+                            return new ScenarioTarget(
+                                TargetKind.ExampleRow,
+                                feature.Name ?? string.Empty,
+                                _scenario.Name ?? string.Empty,
+                                _scenario.Location.Line,
+                                TagNames(_scenario.Tags),
+                                row);
+                        }
+                    }
+
                     return new ScenarioTarget(
                         isOutline ? TargetKind.ScenarioOutline : TargetKind.Scenario,
                         feature.Name ?? string.Empty,
@@ -268,6 +286,51 @@ namespace ReqnrollRunner.Core.Parsing
                 }
 
                 return WholeFeature(feature);
+            }
+
+
+            /// <summary>
+            /// The Examples body row on <paramref name="caretLine"/>, or <see langword="null"/> when
+            /// the caret is elsewhere in the outline — including on a header row, which describes
+            /// every row rather than any one of them.
+            /// </summary>
+            private static ExampleRowInfo? FindExampleRow(Scenario scenario, int caretLine)
+            {
+                int ordinal = 0;
+
+                foreach (Examples examples in scenario.Examples)
+                {
+                    var columns = new List<string>();
+                    if (examples.TableHeader != null)
+                    {
+                        foreach (TableCell cell in examples.TableHeader.Cells)
+                        {
+                            columns.Add((cell.Value ?? string.Empty).Trim());
+                        }
+                    }
+
+                    foreach (TableRow bodyRow in examples.TableBody)
+                    {
+                        // Counted across every Examples block, because that is the order Reqnroll
+                        // generates the rows in.
+                        ordinal++;
+
+                        if (bodyRow.Location.Line != caretLine)
+                        {
+                            continue;
+                        }
+
+                        var values = new List<string>();
+                        foreach (TableCell cell in bodyRow.Cells)
+                        {
+                            values.Add((cell.Value ?? string.Empty).Trim());
+                        }
+
+                        return new ExampleRowInfo(bodyRow.Location.Line, ordinal, values, columns);
+                    }
+                }
+
+                return null;
             }
 
             private static int FirstLine(Location location, IEnumerable<Tag>? tags)

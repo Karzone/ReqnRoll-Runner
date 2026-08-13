@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ReqnrollRunner.Core.Model;
 
@@ -27,8 +29,16 @@ namespace ReqnrollRunner.Core.Mapping
     /// </remarks>
     public static class TestFilterBuilder
     {
-        /// <summary>Characters VSTest treats as filter operators; a literal one must be backslash-escaped.</summary>
-        private static readonly char[] FilterOperators = { '\\', '(', ')', '&', '|', '=', '!', '~', ',' };
+        /// <summary>
+        /// Characters VSTest treats as filter operators; a literal one must be backslash-escaped.
+        /// </summary>
+        /// <remarks>
+        /// Note the absence of the comma. It was originally included as a defensive measure and that
+        /// was wrong: a comma is NOT an operator, and escaping it makes the filter match nothing —
+        /// <c>Name~Multiply\, two numbers</c> selects 0 tests where <c>Name~Multiply, two numbers</c>
+        /// selects 1. Measured against a real run; do not "tidy" it back in.
+        /// </remarks>
+        private static readonly char[] FilterOperators = { '\\', '(', ')', '&', '|', '=', '!', '~' };
 
         /// <summary>
         /// Filter for a single scenario or outline whose generated name came from the code-behind.
@@ -42,6 +52,83 @@ namespace ReqnrollRunner.Core.Mapping
                 : "Matched the generated method '" + methodName + "' in the built code-behind.";
 
             return new TestFilter(expression, FilterStrategy.CodeBehind, explanation);
+        }
+
+
+        /// <summary>
+        /// Filter for a single example row — where the runner allows it.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This is the one place the uniform <c>FullyQualifiedName</c> strategy breaks down, and it
+        /// was measured rather than assumed:
+        /// </para>
+        /// <list type="bullet">
+        /// <item><b>MSTest</b> reports each row as <c>Name</c> = <c>Add many &lt;a&gt; and &lt;b&gt;(1,2,3,4)</c>,
+        /// and a <c>Name~</c> filter on that selects exactly one row.</item>
+        /// <item><b>NUnit</b> puts the arguments in the fully-qualified name, but every filter over
+        /// them returns zero tests — <c>~</c> and <c>=</c>, escaped and unescaped, with and without
+        /// the namespace. The <c>(</c> and <c>"</c> characters defeat the VSTest filter parser.</item>
+        /// <item><b>xUnit</b> gives every row the same fully-qualified name, and
+        /// <c>DisplayName~</c> filters return zero.</item>
+        /// </list>
+        /// <para>
+        /// So NUnit and xUnit widen to the whole outline. The caller is told, so the UI can say so
+        /// before the click rather than leaving the user to notice three tests ran instead of one.
+        /// </para>
+        /// </remarks>
+        /// <param name="fullyQualifiedClassName">Generated fixture class.</param>
+        /// <param name="methodName">Generated method for the outline.</param>
+        /// <param name="runner">Which test framework the project uses.</param>
+        /// <param name="rowValues">The row's cell values, in column order.</param>
+        /// <param name="ordinal">1-based row position across all Examples blocks.</param>
+        /// <param name="widened">Set when the runner cannot select a single row.</param>
+        public static TestFilter ForExampleRow(
+            string fullyQualifiedClassName,
+            string methodName,
+            RunnerKind runner,
+            IReadOnlyList<string> rowValues,
+            int ordinal,
+            out bool widened)
+        {
+            if (runner == RunnerKind.MsTest && rowValues.Count > 0)
+            {
+                // MSTest's display name is the row's values followed by Reqnroll's pickle index, so
+                // matching on a prefix of "(v1,v2,…" pins the row without needing the index.
+                string prefix = "(" + string.Join(",", rowValues.ToArray()) + ",";
+
+                widened = false;
+                return new TestFilter(
+                    "Name~" + Escape(prefix),
+                    FilterStrategy.CodeBehind,
+                    "Matched example row " + ordinal + " by its MSTest display name.");
+            }
+
+            widened = true;
+            return new TestFilter(
+                "FullyQualifiedName~" + Escape(fullyQualifiedClassName + "." + methodName),
+                FilterStrategy.FeatureScopeFallback,
+                DescribeWidening(runner, ordinal));
+        }
+
+        /// <summary>Why a single row could not be selected, in the user's terms.</summary>
+        private static string DescribeWidening(RunnerKind runner, int ordinal)
+        {
+            switch (runner)
+            {
+                case RunnerKind.NUnit:
+                    return "NUnit cannot filter to a single example row — it puts the row's arguments " +
+                           "in the test name, but VSTest filters cannot match them. Running all rows " +
+                           "of the outline instead of row " + ordinal + ". Tip: tagging an Examples " +
+                           "block lets you select it with a category filter.";
+                case RunnerKind.XUnit:
+                    return "xUnit gives every example row the same fully-qualified name, so a single " +
+                           "row cannot be selected. Running all rows of the outline instead of row " +
+                           ordinal + ".";
+                default:
+                    return "This runner cannot filter to a single example row. Running all rows of " +
+                           "the outline instead of row " + ordinal + ".";
+            }
         }
 
         /// <summary>Filter for a whole feature — every test in the generated fixture class.</summary>

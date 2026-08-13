@@ -50,6 +50,15 @@ namespace ReqnrollRunner.Core.Tests
             Assert.Equal("FullyQualifiedName~Ns.CalculatorFeature.Unicodeスカラー", filter.Expression);
         }
 
+        [Fact]
+        public void Does_not_escape_a_comma()
+        {
+            // A comma is not a VSTest filter operator, and escaping it makes the filter match
+            // NOTHING: `Name~Multiply\, two numbers` selects 0 tests against the sample where
+            // `Name~Multiply, two numbers` selects 1. This shipped broken once.
+            Assert.Equal("Multiply, two numbers", TestFilterBuilder.Escape("Multiply, two numbers"));
+        }
+
         [Theory]
         [InlineData("plain", "plain")]
         [InlineData("has(parens)", @"has\(parens\)")]
@@ -58,7 +67,6 @@ namespace ReqnrollRunner.Core.Tests
         [InlineData("a=b", @"a\=b")]
         [InlineData("a!b", @"a\!b")]
         [InlineData("a~b", @"a\~b")]
-        [InlineData("a,b", @"a\,b")]
         [InlineData(@"a\b", @"a\\b")]
         [InlineData("Ivan's (tricky) & odd | title ~ = !", @"Ivan's \(tricky\) \& odd \| title \~ \= \!")]
         public void Escapes_every_filter_operator(string input, string expected)

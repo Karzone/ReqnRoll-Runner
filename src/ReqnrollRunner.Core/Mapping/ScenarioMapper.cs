@@ -99,6 +99,26 @@ namespace ReqnrollRunner.Core.Mapping
                     className, null, warnings);
             }
 
+            GeneratedTestMethod? rowMethod = codeBehind.FindByFeatureLine(target.Line);
+            if (target.Kind == TargetKind.ExampleRow && target.ExampleRow != null && rowMethod != null)
+            {
+                TestFilter rowFilter = TestFilterBuilder.ForExampleRow(
+                    className,
+                    rowMethod.MethodName,
+                    project.Runner,
+                    target.ExampleRow.Values,
+                    target.ExampleRow.OrdinalWithinOutline,
+                    out bool widened);
+
+                if (widened)
+                {
+                    warnings.Add(rowFilter.Explanation);
+                }
+
+                return MappingResult.Ok(
+                    featurePath, line, target, project, rowFilter, className, rowMethod.MethodName, warnings);
+            }
+
             GeneratedTestMethod? method = codeBehind.FindByFeatureLine(target.Line);
             if (method == null)
             {

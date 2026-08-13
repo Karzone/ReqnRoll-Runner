@@ -65,7 +65,8 @@ namespace ReqnrollRunner.Core.Tests
         [InlineData(7, TargetKind.Scenario, "Zwei Zahlen addieren")]
         [InlineData(11, TargetKind.Scenario, "Zwei Zahlen addieren")]
         [InlineData(13, TargetKind.ScenarioOutline, "Mehrere Zahlen addieren")]
-        [InlineData(21, TargetKind.ScenarioOutline, "Mehrere Zahlen addieren")]     // inside Beispiele
+        [InlineData(19, TargetKind.ScenarioOutline, "Mehrere Zahlen addieren")]     // the Beispiele: keyword
+        [InlineData(20, TargetKind.ScenarioOutline, "Mehrere Zahlen addieren")]     // the header row
         public void Handles_localized_keywords(int line, TargetKind expectedKind, string? expectedName)
         {
             FeatureParseResult result = _parser.Resolve(Fixtures.Feature("Rechner.de.feature"), line);
@@ -115,6 +116,63 @@ namespace ReqnrollRunner.Core.Tests
             FeatureParseResult result = _parser.Resolve(Fixtures.Feature("RichSyntax.feature"), 23);
 
             Assert.Equal("A scenario with a doc string", result.Target!.Name);
+        }
+
+
+        // Examples rows — a caret on a body row resolves to that row, not the whole outline.
+        // Calculator.feature: 40 Examples:, 41 header, 42-43 rows; 46 Examples:, 47 header, 48 row.
+        [Theory]
+        [InlineData(42, 1)]
+        [InlineData(43, 2)]
+        [InlineData(48, 3)]   // second Examples block; the ordinal keeps counting across blocks
+        public void Resolves_a_caret_on_an_Examples_row_to_that_row(int line, int expectedOrdinal)
+        {
+            FeatureParseResult result = _parser.Resolve(Fixtures.Feature("Calculator.feature"), line);
+
+            Assert.Equal(TargetKind.ExampleRow, result.Target!.Kind);
+            Assert.NotNull(result.Target.ExampleRow);
+            Assert.Equal(expectedOrdinal, result.Target.ExampleRow!.OrdinalWithinOutline);
+            Assert.Equal(line, result.Target.ExampleRow.Line);
+        }
+
+        [Fact]
+        public void A_row_target_still_reports_the_outlines_line_as_its_join_key()
+        {
+            // Line stays the OUTLINE's keyword line even for a row, because that is what joins to the
+            // generated code-behind — every row of an outline shares one generated method.
+            FeatureParseResult result = _parser.Resolve(Fixtures.Feature("Calculator.feature"), 42);
+
+            Assert.Equal(34, result.Target!.Line);
+            Assert.Equal(42, result.Target.ExampleRow!.Line);
+        }
+
+        [Fact]
+        public void A_row_target_carries_its_values_and_columns()
+        {
+            FeatureParseResult result = _parser.Resolve(Fixtures.Feature("Calculator.feature"), 42);
+
+            Assert.Equal(new[] { "1", "2", "3" }, result.Target!.ExampleRow!.Values);
+            Assert.Equal(new[] { "a", "b", "result" }, result.Target.ExampleRow.Columns);
+        }
+
+        [Theory]
+        [InlineData(40)]   // the Examples: keyword
+        [InlineData(41)]   // the header row — describes every row, not any one of them
+        public void A_caret_on_the_Examples_header_stays_on_the_whole_outline(int line)
+        {
+            FeatureParseResult result = _parser.Resolve(Fixtures.Feature("Calculator.feature"), line);
+
+            Assert.Equal(TargetKind.ScenarioOutline, result.Target!.Kind);
+            Assert.Null(result.Target.ExampleRow);
+        }
+
+        [Fact]
+        public void Resolves_rows_in_a_localized_feature_too()
+        {
+            FeatureParseResult result = _parser.Resolve(Fixtures.Feature("Rechner.de.feature"), 21);
+
+            Assert.Equal(TargetKind.ExampleRow, result.Target!.Kind);
+            Assert.Equal(1, result.Target.ExampleRow!.OrdinalWithinOutline);
         }
 
         [Fact]
