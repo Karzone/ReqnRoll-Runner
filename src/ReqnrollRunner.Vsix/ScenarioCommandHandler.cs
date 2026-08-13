@@ -123,6 +123,12 @@ namespace ReqnrollRunner.Vsix
                 {
                     case TargetKind.ScenarioOutline:
                         return "Scenario Outline (all examples)";
+                    case TargetKind.ExampleRow:
+                        // Say up front when the runner cannot isolate a row, rather than letting the
+                        // user click "Example Row 2" and then notice three tests ran.
+                        return CanRunSingleRow(parsed.Target)
+                            ? "Example Row " + parsed.Target.ExampleRow!.OrdinalWithinOutline
+                            : "Scenario Outline (all examples — this runner cannot isolate a row)";
                     case TargetKind.Feature:
                     case TargetKind.Rule:
                         return "Feature";
@@ -133,6 +139,37 @@ namespace ReqnrollRunner.Vsix
             catch (Exception)
             {
                 return "Scenario";
+            }
+        }
+
+
+        /// <summary>
+        /// Whether the project's runner can select a single example row. Mirrors
+        /// <c>TestFilterBuilder.ForExampleRow</c>; only MSTest can, and that was measured.
+        /// </summary>
+        private bool CanRunSingleRow(ScenarioTarget target)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (target.ExampleRow == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                CaretPosition? caret = EditorContext.GetCaretPosition(_dte);
+                if (caret == null)
+                {
+                    return false;
+                }
+
+                TestProjectInfo? project = new Core.Projects.ProjectResolver().Resolve(caret.FilePath, out _);
+                return project?.Runner == RunnerKind.MsTest;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
