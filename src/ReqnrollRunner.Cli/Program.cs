@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ReqnrollRunner.Core.Execution;
 using ReqnrollRunner.Core.Mapping;
 using ReqnrollRunner.Core.Model;
+using ReqnrollRunner.Core.Validation;
 
 namespace ReqnrollRunner.Cli
 {
@@ -53,6 +54,13 @@ namespace ReqnrollRunner.Cli
                 return ExitUsage;
             }
 
+            // Lint needs no project, no build and no caret position — it is a pure read of the
+            // feature file — so it is handled before the mapper runs.
+            if (options.Command == CommandKind.Lint)
+            {
+                return Lint(options);
+            }
+
             MappingResult mapping = new ScenarioMapper().Map(options.File!, options.Line);
 
             switch (options.Command)
@@ -70,6 +78,38 @@ namespace ReqnrollRunner.Cli
                     Console.Error.WriteLine(CommandLineOptions.Usage);
                     return ExitUsage;
             }
+        }
+
+        private static int Lint(CommandLineOptions options)
+        {
+            ValidationResult result = new FeatureValidator().Validate(options.File!);
+
+            if (options.Json)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(LintDto.From(options.File!, result), JsonOptions));
+                return result.IsClean ? ExitSuccess : ExitFailure;
+            }
+
+            if (!result.Parsed)
+            {
+                Console.Error.WriteLine("✗ " + result.Error);
+                return ExitFailure;
+            }
+
+            foreach (ValidationDiagnostic d in result.Diagnostics)
+            {
+                // file:line:col code message — the shape editors and CI annotators already parse.
+                Console.WriteLine(
+                    options.File + "(" + d.Line + "," + d.Column + "): " +
+                    d.Severity.ToString().ToLowerInvariant() + " " + d.Code + ": " + d.Message);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine(result.IsClean
+                ? "✓ No problems found."
+                : "✗ " + result.Diagnostics.Count + " problem(s) found.");
+
+            return result.IsClean ? ExitSuccess : ExitFailure;
         }
 
         private static int ReportMapping(MappingResult mapping, bool json)

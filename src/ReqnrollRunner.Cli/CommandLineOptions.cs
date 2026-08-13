@@ -9,6 +9,7 @@ namespace ReqnrollRunner.Cli
         Map,
         Run,
         Debug,
+        Lint,
         Help,
     }
 
@@ -58,6 +59,9 @@ namespace ReqnrollRunner.Cli
                     break;
                 case "debug":
                     options.Command = CommandKind.Debug;
+                    break;
+                case "lint":
+                    options.Command = CommandKind.Lint;
                     break;
                 case "-h":
                 case "--help":
@@ -182,6 +186,7 @@ USAGE
                         [--configuration <name>] [--framework <tfm>]
                         [--args ""<extra dotnet test args>""]
   reqnroll-runner debug --file <path.feature> --line <n> [--timeout <seconds>]
+  reqnroll-runner lint  --file <path.feature> [--json]
 
 COMMANDS
   map     Dry run. Prints the resolved target, project, runner and the exact
@@ -189,6 +194,10 @@ COMMANDS
   run     Executes the mapped scenario and reports parsed TRX results.
   debug   Starts the run with VSTEST_HOST_DEBUG=1, prints the test host process
           id to attach to, then waits.
+  lint    Reports authoring mistakes that are legal Gherkin, so nothing else
+          complains about them: an Examples column no step uses, a <placeholder>
+          with no matching column, a plain Scenario using placeholders, and an
+          Outline that substitutes nothing. Needs no project and no build.
 
 OPTIONS
   -f, --file       Path to the .feature file.

@@ -164,4 +164,53 @@ namespace ReqnrollRunner.Cli
 
         public string? StackTrace { get; set; }
     }
+
+    /// <summary>The <c>lint --json</c> shape.</summary>
+    internal sealed class LintDto
+    {
+        public string File { get; set; } = string.Empty;
+
+        public bool Parsed { get; set; }
+
+        public bool Clean { get; set; }
+
+        public string? Error { get; set; }
+
+        public IReadOnlyList<DiagnosticDto> Diagnostics { get; set; } = new List<DiagnosticDto>();
+
+        public static LintDto From(string file, ValidationResult result)
+        {
+            return new LintDto
+            {
+                File = file,
+                Parsed = result.Parsed,
+                Clean = result.IsClean,
+                Error = result.Error,
+                Diagnostics = result.Diagnostics.Select(d => new DiagnosticDto
+                {
+                    Code = d.Code,
+                    Severity = d.Severity.ToString(),
+                    Message = d.Message,
+                    Line = d.Line,
+                    Column = d.Column,
+                    Scenario = d.ScenarioName,
+                }).ToList(),
+            };
+        }
+    }
+
+    internal sealed class DiagnosticDto
+    {
+        public string Code { get; set; } = string.Empty;
+
+        public string Severity { get; set; } = string.Empty;
+
+        public string Message { get; set; } = string.Empty;
+
+        public int Line { get; set; }
+
+        public int Column { get; set; }
+
+        public string? Scenario { get; set; }
+    }
 }
