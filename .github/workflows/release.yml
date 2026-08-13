@@ -1,0 +1,109 @@
+name: Release
+
+# Fires only on a version tag. Nothing here runs on an ordinary push, so cutting a release is always
+# a deliberate act:
+#
+#     git tag -a v0.1.0 -m "first release"
+#     git push origin v0.1.0
+#
+# A GitHub Release gives a permanent, public, no-login download URL. The CI build artifact that
+# serves that purpose today requires a GitHub account and expires after 90 days, so it cannot be
+# handed to anyone else.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and publish (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  release:
+    name: Build and publish the VSIX
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      # The tests gate the release. A tag should never produce a .vsix from a red tree.
+      - name: Test
+        run: dotnet test ReqnrollRunner.sln --configuration Release
+
+      - name: Restore
+        run: msbuild ReqnrollRunner.VisualStudio.sln -t:Restore -p:Configuration=Release
+
+      - name: Build and package
+        run: msbuild ReqnrollRunner.VisualStudio.sln -p:Configuration=Release -p:DeployExtension=False
+
+      # Same payload assertions as the CI packaging job: a VSSDK build can succeed while producing a
+      # .vsix that fails to load for every user. Gherkin is Core's only dependency and Visual Studio
+      # will not resolve it from a NuGet cache at run time.
+      - name: Verify the package
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem -Path src/ReqnrollRunner.Vsix/bin/Release -Filter *.vsix
+          if (-not $vsix) { Write-Error "No .vsix was produced."; exit 1 }
+
+          $extract = Join-Path $env:RUNNER_TEMP 'vsix'
+          Copy-Item $vsix[0].FullName (Join-Path $env:RUNNER_TEMP 'p.zip')
+          Expand-Archive -Path (Join-Path $env:RUNNER_TEMP 'p.zip') -DestinationPath $extract -Force
+
+          foreach ($required in @('ReqnrollRunner.Vsix.dll','ReqnrollRunner.Core.dll','Gherkin.dll','extension.vsixmanifest')) {
+            if (-not (Test-Path (Join-Path $extract $required))) { Write-Error "The .vsix is missing $required"; exit 1 }
+            Write-Host "  ok: $required"
+          }
+
+          # The manifest version is what Visual Studio shows in Extensions → Manage, and what it
+          # compares when offering an update. If it disagrees with the tag, users install "1.0.0"
+          # from a release called v0.2.0 and no later release will ever look newer to them.
+          #
+          # A warning rather than a failure: it is a labelling mistake, not a broken package, and
+          # failing here would throw away a build that is otherwise fine to hand out. Both numbers
+          # are printed either way, so the mismatch is visible in the log.
+          [xml]$manifest = Get-Content (Join-Path $extract 'extension.vsixmanifest')
+          $manifestVersion = [string]$manifest.PackageManifest.Metadata.Identity.Version
+          $tagVersion = ("${{ github.event.inputs.tag || github.ref_name }}" -replace '^v', '')
+          Write-Host "  manifest version: $manifestVersion / tag version: $tagVersion"
+
+          # Compare on the first three components only — the manifest may carry a build number the
+          # tag does not (1.0.0.0 vs v1.0.0), which is not a mismatch worth shouting about.
+          function Truncate($v) { ($v -split '\.' | Select-Object -First 3) -join '.' }
+          if ((Truncate $manifestVersion) -ne (Truncate $tagVersion)) {
+            Write-Warning "Manifest version ($manifestVersion) does not match the tag ($tagVersion). Update source.extension.vsixmanifest before the next release."
+          }
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: src/ReqnrollRunner.Vsix/bin/Release/*.vsix
+          generate_release_notes: true
+          # Pre-release until the manual acceptance pass in #1 has been done at least once. A release
+          # says "this works"; that has not been established in a real Visual Studio session yet.
+          prerelease: true
+          body: |
+            Download the `.vsix` below, double-click it, and restart Visual Studio 2022 or 2026.
+
+            **Status:** the mapping engine is covered by an extensive automated suite, and CI builds
+            and payload-checks the extension on every push — but the extension's Visual Studio
+            behaviour (menus, adornments, debugger attach) has not yet been through a full manual
+            acceptance pass. See
+            [docs/manual-testing.md](https://github.com/Karzone/ReqnRoll-Runner/blob/main/docs/manual-testing.md)
+            and please report anything odd.
