@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest something the runner should do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before writing, it may save you time to know what is deliberately **out of scope for v1**:
+        Test Explorer window integration, running a single Scenario Outline example row, a test
+        discovery tree, SpecFlow support, and VS Code (planned as v2, as a thin head over the
+        existing CLI). Suggestions in those areas are still welcome — they are just already known.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: What are you trying to do today, and what makes it awkward?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints this project holds to
+      description: Just so we are working from the same map — tick any you have already considered.
+      options:
+        - label: It should not require changes to Reqnroll itself
+        - label: It should not put a Visual Studio dependency into ReqnrollRunner.Core
+        - label: It should not add network access or telemetry

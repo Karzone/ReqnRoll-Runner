@@ -169,9 +169,12 @@ instance, put the caret in `Features/Calculator.feature` and right-click.
 
 ## Contributing
 
-Conventional commits. `ReqnrollRunner.Core` builds with warnings as errors and must never gain a
-Visual Studio dependency — that constraint is what makes the logic testable without an IDE and keeps
-the VS Code head possible.
+Issues and pull requests are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for how to get set
+up, what a good PR looks like, and the two constraints that shape the design.
+
+The short version: conventional commits; `ReqnrollRunner.Core` builds with warnings as errors and
+must never gain a Visual Studio dependency — that constraint is what makes the logic testable without
+an IDE and keeps the VS Code head possible.
 
 If you change how scenario titles map to identifiers, regenerate the oracle:
 
@@ -181,6 +184,9 @@ If you change how scenario titles map to identifiers, regenerate the oracle:
 
 That rebuilds a corpus of titles through the **real** Reqnroll generator and rewrites
 `tests/fixtures/sanitizer-corpus.tsv`, which the sanitizer tests assert against row by row.
+
+Everyone taking part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues
+should be reported privately — see [SECURITY.md](SECURITY.md).
 
 ## Licence
 

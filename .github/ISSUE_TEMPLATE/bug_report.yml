@@ -1,0 +1,80 @@
+name: Bug report
+description: The wrong test ran, no test ran, or something else misbehaved
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The single most useful thing you can include is the output of
+        `map`, which shows exactly what the runner resolved without executing anything.
+
+  - type: textarea
+    id: map-output
+    attributes:
+      label: Output of `map`
+      description: |
+        Run this against the scenario that misbehaved, with the same line number your caret was on:
+
+        ```
+        dotnet run --project src/ReqnrollRunner.Cli -- map --file <path>.feature --line <n>
+        ```
+
+        Or, if you installed the CLI as a tool: `reqnroll-runner map --file <path>.feature --line <n>`
+      render: text
+      placeholder: |
+        Target       : Scenario 'Add two numbers'
+        Project      : /repo/Tests.csproj
+        Runner       : NUnit
+        Filter       : FullyQualifiedName~My.Tests.Features.FooFeature.AddTwoNumbers
+        Strategy     : CodeBehind — ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-snippet
+    attributes:
+      label: The relevant part of the .feature file
+      description: Please keep the original punctuation and any unusual characters — they are often the cause.
+      render: gherkin
+    validations:
+      required: false
+
+  - type: input
+    id: reqnroll-version
+    attributes:
+      label: Reqnroll version
+      placeholder: "3.3.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: runner
+    attributes:
+      label: Test framework
+      options: [NUnit, xUnit, MSTest, Other or not sure]
+    validations:
+      required: true
+
+  - type: input
+    id: vs-version
+    attributes:
+      label: Visual Studio version (if using the extension)
+      placeholder: "17.9.5"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Things worth ruling out first
+      options:
+        - label: The project builds successfully on its own
+        - label: There is a generated `.feature.cs` next to the feature file, and it is up to date
+        - label: The same test runs correctly from Test Explorer
