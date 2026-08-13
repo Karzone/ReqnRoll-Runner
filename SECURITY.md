@@ -2,10 +2,12 @@
 
 ## Reporting a vulnerability
 
-Please report security issues **privately**, not as a public issue:
+Please report security issues **privately**, not as a public issue, using GitHub's
+[private vulnerability reporting](https://github.com/Karzone/ReqnRoll-Runner/security/advisories/new).
+That opens a draft advisory visible only to you and the maintainer.
 
-- Use GitHub's [private vulnerability reporting](https://github.com/Karzone/ReqnRoll-Runner/security/advisories/new), or
-- email karthikawaiting@gmail.com
+If that link is not available to you for any reason, open a public issue saying only that you have
+found a security problem and would like a private channel — please do not include the details.
 
 This is a single-maintainer hobby project, so please allow a reasonable window for a reply before
 disclosing publicly.
