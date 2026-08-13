@@ -40,6 +40,11 @@ namespace ReqnrollRunner.Core.Execution
                 arguments.Append(" --no-build");
             }
 
+            if (!string.IsNullOrWhiteSpace(options.Configuration))
+            {
+                arguments.Append(" --configuration ").Append(Quote(options.Configuration!));
+            }
+
             if (!string.IsNullOrWhiteSpace(options.Framework))
             {
                 arguments.Append(" --framework ").Append(Quote(options.Framework!));
@@ -95,6 +100,7 @@ namespace ReqnrollRunner.Core.Execution
             var effectiveOptions = new RunOptions
             {
                 NoBuild = options.NoBuild,
+                Configuration = options.Configuration,
                 Framework = options.Framework ?? mapping.Project.ResolveFramework(options.Framework),
                 ExtraArguments = options.ExtraArguments,
                 ResultsDirectory = resultsDirectory,
@@ -150,10 +156,10 @@ namespace ReqnrollRunner.Core.Execution
             string? failureReason = null;
             if (!zeroMatched && results.Count == 0 && processResult.ExitCode != 0)
             {
-                // No TRX and a non-zero exit means the run never got as far as executing tests —
-                // almost always a build error. Surface the tail of the output rather than a bare code.
+                // No TRX and a non-zero exit means the run never got as far as executing tests.
                 failureReason = "dotnet test exited with code " + processResult.ExitCode +
-                                " without producing any test results. " + FirstErrorLine(processResult.OutputLines);
+                                " without producing any test results. " +
+                                Diagnose(processResult.OutputLines, effectiveOptions);
             }
 
             return new TestRunResult(
@@ -165,8 +171,33 @@ namespace ReqnrollRunner.Core.Execution
                 failureReason);
         }
 
-        private static string FirstErrorLine(IReadOnlyList<string> lines)
+        /// <summary>
+        /// Turns a failed run into something a human can act on.
+        /// </summary>
+        /// <remarks>
+        /// The wrong-configuration case earns its own branch because VSTest's own wording for it is
+        /// actively misleading — "The argument /path/bin/Debug/net8.0/Tests.dll is invalid" — when the
+        /// real problem is simply that nothing was built into that folder. It is easy to hit: build
+        /// Release, run without <c>--configuration</c>, and <c>--no-build</c> goes looking in Debug.
+        /// </remarks>
+        internal static string Diagnose(IReadOnlyList<string> lines, RunOptions options)
         {
+            foreach (string line in lines)
+            {
+                if (line.IndexOf("is invalid. Please use the /help option", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    continue;
+                }
+
+                string configuration = string.IsNullOrWhiteSpace(options.Configuration)
+                    ? "Expected the Debug build, which is the default because no configuration was specified."
+                    : "Expected the " + options.Configuration + " build.";
+
+                return "The test assembly was not found, so there was nothing to run. " + configuration +
+                       " Either build that configuration, or run without --no-build. Test host said: " +
+                       line.Trim();
+            }
+
             foreach (string line in lines)
             {
                 if (line.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -175,7 +206,21 @@ namespace ReqnrollRunner.Core.Execution
                 }
             }
 
-            return "See the output above.";
+            return LastMeaningfulLine(lines);
+        }
+
+        private static string LastMeaningfulLine(IReadOnlyList<string> lines)
+        {
+            for (int i = lines.Count - 1; i >= 0; i--)
+            {
+                string line = lines[i].Trim();
+                if (line.Length > 0)
+                {
+                    return "Last output line: " + line;
+                }
+            }
+
+            return "It produced no output at all.";
         }
 
         private static TestRunResult Failed(string filter, string reason)

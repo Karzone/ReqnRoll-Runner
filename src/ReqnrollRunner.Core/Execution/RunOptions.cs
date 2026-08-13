@@ -13,6 +13,19 @@ namespace ReqnrollRunner.Core.Execution
         /// <summary>TFM to run when the project multi-targets. <see langword="null"/> omits <c>--framework</c>.</summary>
         public string? Framework { get; set; }
 
+        /// <summary>
+        /// Build configuration to run, e.g. <c>Debug</c> or <c>Release</c>. <see langword="null"/>
+        /// omits <c>--configuration</c>, which leaves <c>dotnet test</c> on its own default of Debug.
+        /// </summary>
+        /// <remarks>
+        /// This has to be passed explicitly whenever the caller built something other than Debug.
+        /// With <see cref="NoBuild"/> set, <c>dotnet test</c> looks for
+        /// <c>bin/&lt;configuration&gt;/&lt;tfm&gt;/…dll</c> and fails with a genuinely unhelpful
+        /// message if it is not there — "The argument …dll is invalid" — so the VSIX passes Visual
+        /// Studio's active solution configuration and the CLI exposes <c>--configuration</c>.
+        /// </remarks>
+        public string? Configuration { get; set; }
+
         /// <summary>Appended verbatim after everything else, so a user can pass anything we do not model.</summary>
         public string? ExtraArguments { get; set; }
 

@@ -30,6 +30,8 @@ namespace ReqnrollRunner.Cli
 
         public string? Framework { get; private set; }
 
+        public string? Configuration { get; private set; }
+
         public string? ExtraArguments { get; private set; }
 
         public int TimeoutSeconds { get; private set; } = 30;
@@ -105,6 +107,17 @@ namespace ReqnrollRunner.Cli
                         options.Framework = framework;
                         break;
 
+                    case "--configuration":
+                    case "-c":
+                        if (!TryTakeValue(args, ref i, out string? configuration))
+                        {
+                            options.Error = "--configuration needs a value, e.g. Release.";
+                            return options;
+                        }
+
+                        options.Configuration = configuration;
+                        break;
+
                     case "--args":
                         if (!TryTakeValue(args, ref i, out string? extra))
                         {
@@ -166,7 +179,8 @@ namespace ReqnrollRunner.Cli
 USAGE
   reqnroll-runner map   --file <path.feature> --line <n> [--json]
   reqnroll-runner run   --file <path.feature> --line <n> [--no-build] [--json]
-                        [--framework <tfm>] [--args ""<extra dotnet test args>""]
+                        [--configuration <name>] [--framework <tfm>]
+                        [--args ""<extra dotnet test args>""]
   reqnroll-runner debug --file <path.feature> --line <n> [--timeout <seconds>]
 
 COMMANDS
@@ -181,6 +195,11 @@ OPTIONS
   -l, --line       1-based caret line. Defaults to 1 (the Feature: header).
       --json       Emit machine-readable JSON instead of text.
       --no-build   Pass --no-build to dotnet test.
+  -c, --configuration
+                   Build configuration to run, e.g. Release. Omitted means Debug,
+                   which is dotnet test's own default. With --no-build this must
+                   match the configuration you actually built, or there will be
+                   no test assembly to run.
       --framework  Target framework to use when the project multi-targets.
       --args       Extra arguments appended verbatim to dotnet test.
       --timeout    Seconds to wait for the test host process id. Default 30.

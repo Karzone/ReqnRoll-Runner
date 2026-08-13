@@ -79,9 +79,16 @@ reqnroll-runner map --file Features/Calculator.feature --line 12
 # Run it
 reqnroll-runner run --file Features/Calculator.feature --line 12
 
+# Run against a Release build you have already made
+reqnroll-runner run --file Features/Calculator.feature --line 12 --no-build --configuration Release
+
 # Start a debuggable run and print the test host pid to attach to
 reqnroll-runner debug --file Features/Calculator.feature --line 12
 ```
+
+> `--configuration` matters whenever you pass `--no-build`: `dotnet test` defaults to Debug, so
+> running a Release build without it finds no test assembly. The extension handles this for you by
+> passing Visual Studio's active solution configuration.
 
 `map` output:
 

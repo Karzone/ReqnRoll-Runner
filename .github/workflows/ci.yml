@@ -82,7 +82,7 @@ jobs:
       - name: Run a single scenario, an outline and the whole feature
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           feature="samples/SampleCalculator/${{ matrix.sample }}/Features/Calculator.feature"
 
           # line 10 = one Scenario, line 34 = a Scenario Outline (3 example rows),
@@ -91,10 +91,20 @@ jobs:
 
           for line in 10 34 1; do
             echo "::group::line $line"
+            # --configuration Release because the sample above was built Release and the CLI passes
+            # --no-build through; without it dotnet test looks in bin/Debug and finds nothing.
+            # Deliberately NOT under `set -e`: a non-zero exit here is a result to report, and
+            # letting the shell kill the step would throw away the output that explains why.
             output=$(dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
-              run --file "$feature" --line "$line" --no-build --json)
+              run --file "$feature" --line "$line" --no-build --configuration Release --json 2>&1)
+            status=$?
             echo "$output"
             echo "::endgroup::"
+
+            if [ $status -ne 0 ]; then
+              echo "::error::the CLI exited $status for line $line"
+              exit 1
+            fi
 
             passed=$(echo "$output" | python3 -c "import json,sys; print(json.load(sys.stdin)['passed'])")
             want=${expected[$line]}

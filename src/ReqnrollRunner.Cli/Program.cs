@@ -125,6 +125,7 @@ namespace ReqnrollRunner.Cli
             {
                 // The CLI defaults to building, unlike the VSIX which builds through the IDE first.
                 NoBuild = options.NoBuild,
+                Configuration = options.Configuration,
                 Framework = options.Framework,
                 ExtraArguments = options.ExtraArguments,
             };
@@ -165,6 +166,7 @@ namespace ReqnrollRunner.Cli
             var runOptions = new RunOptions
             {
                 NoBuild = options.NoBuild,
+                Configuration = options.Configuration,
                 Framework = options.Framework,
                 ExtraArguments = options.ExtraArguments,
                 AttachTimeoutSeconds = options.TimeoutSeconds,

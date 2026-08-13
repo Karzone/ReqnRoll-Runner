@@ -139,6 +139,7 @@ namespace ReqnrollRunner.Core.Execution
             var effectiveOptions = new RunOptions
             {
                 NoBuild = options.NoBuild,
+                Configuration = options.Configuration,
                 Framework = options.Framework ?? mapping.Project.ResolveFramework(options.Framework),
                 ExtraArguments = options.ExtraArguments,
                 ResultsDirectory = resultsDirectory,

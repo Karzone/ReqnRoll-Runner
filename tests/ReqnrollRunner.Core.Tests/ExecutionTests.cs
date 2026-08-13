@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ReqnrollRunner.Core.Execution;
@@ -37,6 +38,65 @@ namespace ReqnrollRunner.Core.Tests
                 "/repo/Tests.csproj", "f", "r.trx", new RunOptions { NoBuild = false });
 
             Assert.DoesNotContain("--no-build", arguments);
+        }
+
+        [Fact]
+        public void Includes_the_configuration_only_when_one_is_chosen()
+        {
+            string withConfiguration = DotnetTestRunner.BuildArguments(
+                "/repo/Tests.csproj", "f", "r.trx", new RunOptions { Configuration = "Release" });
+            string without = DotnetTestRunner.BuildArguments(
+                "/repo/Tests.csproj", "f", "r.trx", new RunOptions());
+
+            Assert.Contains("--configuration \"Release\"", withConfiguration);
+            Assert.DoesNotContain("--configuration", without);
+        }
+
+        [Fact]
+        public void Explains_a_missing_test_assembly_instead_of_repeating_vstest_s_wording()
+        {
+            // VSTest's own message for "you built Release but I looked in Debug" is
+            // "The argument /repo/bin/Debug/net8.0/Tests.dll is invalid", which points at the wrong
+            // thing entirely. The user needs to be told about the configuration.
+            var output = new List<string>
+            {
+                "Test run for /repo/bin/Debug/net8.0/Tests.dll (.NETCoreApp,Version=v8.0)",
+                "The argument /repo/bin/Debug/net8.0/Tests.dll is invalid. Please use the /help option to check the list of valid arguments.",
+            };
+
+            string diagnosis = DotnetTestRunner.Diagnose(output, new RunOptions());
+
+            Assert.Contains("test assembly was not found", diagnosis);
+            Assert.Contains("Expected the Debug build, which is the default", diagnosis);
+        }
+
+        [Fact]
+        public void Names_the_configuration_that_was_actually_asked_for()
+        {
+            var output = new List<string>
+            {
+                "The argument /repo/bin/Release/net8.0/Tests.dll is invalid. Please use the /help option to check the list of valid arguments.",
+            };
+
+            string diagnosis = DotnetTestRunner.Diagnose(output, new RunOptions { Configuration = "Release" });
+
+            Assert.Contains("Expected the Release build.", diagnosis);
+        }
+
+        [Fact]
+        public void Falls_back_to_the_last_output_line_when_nothing_matches()
+        {
+            var output = new List<string> { "something happened", "and then this", "   " };
+
+            Assert.Equal("Last output line: and then this", DotnetTestRunner.Diagnose(output, new RunOptions()));
+        }
+
+        [Fact]
+        public void Reports_a_silent_failure_rather_than_an_empty_message()
+        {
+            Assert.Equal(
+                "It produced no output at all.",
+                DotnetTestRunner.Diagnose(new List<string>(), new RunOptions()));
         }
 
         [Fact]

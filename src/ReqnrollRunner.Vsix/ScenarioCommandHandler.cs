@@ -204,9 +204,14 @@ namespace ReqnrollRunner.Vsix
 
             output.WriteBlankLine();
 
+            await _package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Read this before building: whatever Visual Studio builds is what dotnet test must run,
+            // and dotnet test defaults to Debug regardless of the IDE's selection.
+            string? configuration = SolutionBuilder.GetActiveConfiguration(_dte);
+
             if (!options.SkipBuild)
             {
-                await _package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 _dte.StatusBar.Text = "Reqnroll Runner: building…";
 
                 if (!SolutionBuilder.BuildProject(_dte, mapping.Project.ProjectPath, output.WriteLine))
@@ -222,6 +227,7 @@ namespace ReqnrollRunner.Vsix
             {
                 // The IDE has just built (or the user opted out), so never build again inside dotnet test.
                 NoBuild = true,
+                Configuration = configuration,
                 ExtraArguments = string.IsNullOrWhiteSpace(options.ExtraArguments) ? null : options.ExtraArguments,
                 Framework = string.IsNullOrWhiteSpace(options.PreferredTargetFramework)
                     ? null

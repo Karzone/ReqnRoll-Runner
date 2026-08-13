@@ -16,6 +16,30 @@ namespace ReqnrollRunner.Vsix
     internal static class SolutionBuilder
     {
         /// <summary>
+        /// Visual Studio's active solution configuration — <c>Debug</c>, <c>Release</c>, or whatever
+        /// the user has selected.
+        /// </summary>
+        /// <remarks>
+        /// This has to be handed to <c>dotnet test</c>. It defaults to Debug on its own, so a user
+        /// with Release selected in the IDE would otherwise get "The argument …/bin/Debug/….dll is
+        /// invalid" — a message that says nothing about the actual problem.
+        /// </remarks>
+        public static string? GetActiveConfiguration(DTE2 dte)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            try
+            {
+                return dte.Solution?.SolutionBuild?.ActiveConfiguration?.Name;
+            }
+            catch (Exception)
+            {
+                // No solution open, or a solution type that does not expose configurations.
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Builds the project containing <paramref name="projectPath"/> and waits for it to finish.
         /// </summary>
         /// <returns><see langword="true"/> when the build succeeded.</returns>
