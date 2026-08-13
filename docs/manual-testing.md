@@ -68,10 +68,49 @@ Building SampleCalculator.NUnit (Debug)…
 PASSED — 1 passed in 2.4s
 ```
 
+### Example rows
+
+Row-level filtering only works on MSTest — the other two runners give a row no identity a VSTest
+filter can match, so they widen to the whole outline and say so. Both halves need checking, because
+the honest widening is the part that is easy to get wrong.
+
+Open `samples\SampleCalculator\SampleCalculator.MsTest` and build it, then in its
+`Features\Calculator.feature`:
+
+| Caret on | Menu should read | Expect |
+|---|---|---|
+| line 42, `| 1 | 2 | 3 |` | Run **Example Row 1** | 1 passed — `Add many <a> and <b>(1,2,3,4)` |
+| line 43, `| 4 | 5 | 9 |` | Run Example Row 2 | 1 passed — `(4,5,9,5)` |
+| line 48, in the second `Examples:` block | Run Example Row 3 | 1 passed — `(10,20,30,6)` |
+| line 41, the header row | Run **Scenario Outline (all examples)** | 3 passed |
+
+Then the same three lines in the **NUnit** sample. The menu must read **"Run Scenario Outline (all
+examples — this runner cannot isolate a row)"** and produce 3 passed, with the reason echoed as a
+`Warning:` line in the output pane. A menu that still offers "Run Example Row 2" there, or one that
+runs 3 tests without saying why, is the bug.
+
+The filter is printed on every run, so it can be checked directly. For an MSTest row it must have
+**both** clauses:
+
+```
+Filter : (FullyQualifiedName~SampleCalculator.MsTest.Features.CalculatorBasicMoreFeature.AddManyAAndB)&(Name~\(1,2,3,)
+```
+
+The `Name~` half alone would match rows of unrelated outlines whose values start the same way.
+
 Also worth checking:
 
 - **The command must not appear in a `.cs` file.** Open `Steps\CalculatorSteps.cs`, right-click —
   neither command should be there.
+- **Unsaved edits.** Put the caret on line 10 and press <kbd>Enter</kbd> three times *above* it
+  without saving, so the scenario is now on line 13 in the buffer and line 10 on disk. Run it. The
+  pane should say `Saved Calculator.feature first.` and run **Add two numbers** — not whatever used
+  to live at line 13. This is the one failure mode that produces a green run of the wrong test, so
+  it is worth doing deliberately.
+- **The Run | Debug links above each scenario.** They should appear on every scenario keyword line,
+  including the one inside the `Rule:` block, and clicking them should do exactly what the context
+  menu does. Watch for them overlapping the line above — they are drawn in that line's space, so a
+  scenario immediately preceded by a tag or a step is the case to look at.
 - **Release configuration.** Switch the solution to Release, rebuild, run a scenario. The `dotnet
   test` line should say `--configuration Release`. This is the bug CI caught on Linux; it is worth
   confirming the fix works through the IDE path too.

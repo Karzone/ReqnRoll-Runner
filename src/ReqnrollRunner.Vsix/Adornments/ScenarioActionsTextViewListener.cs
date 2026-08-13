@@ -38,13 +38,23 @@ namespace ReqnrollRunner.Vsix.Adornments
                 return;
             }
 
-            // The adornment knows nothing about running tests — it reports a line and whether Debug
-            // was wanted, and the package does the rest through exactly the same path the context
-            // menu uses. One execution path, two ways to reach it.
-            _ = new ScenarioActionsAdornment(
-                textView,
-                path,
-                (line, debug) => ScenarioRunRequest.Raise(path, line, debug));
+            try
+            {
+                // The adornment knows nothing about running tests — it reports a line and whether
+                // Debug was wanted, and the package does the rest through exactly the same path the
+                // context menu uses. One execution path, two ways to reach it.
+                _ = new ScenarioActionsAdornment(
+                    textView,
+                    (line, debug) => ScenarioRunRequest.Raise(path, line, debug));
+            }
+            catch (Exception)
+            {
+                // GetAdornmentLayer throws if the layer definition below did not compose, and this
+                // runs inside the editor's own view-creation path — an exception here would surface
+                // as an error every single time a .feature file is opened. Losing the Run/Debug
+                // links is a bad day; making the file unopenable is a worse one, and the context
+                // menu still does everything these links do.
+            }
         }
     }
 

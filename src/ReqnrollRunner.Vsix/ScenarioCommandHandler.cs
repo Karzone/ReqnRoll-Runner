@@ -249,6 +249,14 @@ namespace ReqnrollRunner.Vsix
             output.StartRun((debug ? "Debug" : "Run") + " — " + System.IO.Path.GetFileName(caret.FilePath) +
                            " line " + caret.Line);
 
+            // Before anything reads the file: the line number came from the buffer and the parser
+            // reads the disk, so an unsaved edit makes them refer to different scenarios. See
+            // EditorContext.SaveIfDirty.
+            if (EditorContext.SaveIfDirty(_dte, caret.FilePath))
+            {
+                output.WriteLine("Saved " + System.IO.Path.GetFileName(caret.FilePath) + " first.");
+            }
+
             MappingResult mapping = _mapper.Map(caret.FilePath, caret.Line);
 
             if (!mapping.Success)

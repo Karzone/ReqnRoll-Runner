@@ -52,6 +52,61 @@ namespace ReqnrollRunner.Vsix
             return new CaretPosition(document.FullName, line < 1 ? 1 : line);
         }
 
+        /// <summary>
+        /// Saves <paramref name="filePath"/> if it is open with unsaved changes.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This is a correctness step, not a courtesy. Everything downstream reads the feature file
+        /// from DISK — <c>FeatureFileParser</c> opens the path, and the caret line is an index into
+        /// what it finds there. The line number, though, comes from the editor BUFFER. Insert three
+        /// lines above a scenario without saving and those two disagree: line 40 in the buffer is
+        /// line 37 on disk, so the runner resolves a different scenario and runs it without
+        /// complaint. Silently running the wrong test is the exact failure the <c>#line</c> mapping
+        /// exists to prevent, and it would be indistinguishable from a mapping bug.
+        /// </para>
+        /// <para>
+        /// Saving is also simply required: Reqnroll regenerates the code-behind from the file on
+        /// disk during the build, so an unsaved edit could not have a generated test to match
+        /// anyway. Visual Studio's own "run test at cursor" saves for the same reason.
+        /// </para>
+        /// <para>
+        /// Best effort — a read-only file or a failing save must not stop the run, because the
+        /// on-disk content is still perfectly runnable.
+        /// </para>
+        /// </remarks>
+        /// <returns><see langword="true"/> when a save actually happened.</returns>
+        public static bool SaveIfDirty(DTE2 dte, string filePath)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            try
+            {
+                foreach (Document document in dte.Documents)
+                {
+                    if (!string.Equals(document.FullName, filePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!document.Saved)
+                    {
+                        document.Save();
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                // Not open, read-only, or the save was cancelled. The file on disk is still what gets
+                // run, and the caller reports the results of that run either way.
+            }
+
+            return false;
+        }
+
         /// <summary>Whether the active document is a feature file, used to gate command visibility.</summary>
         public static bool IsFeatureFileActive(DTE2 dte)
         {

@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
-using ReqnrollRunner.Core.Model;
 using ReqnrollRunner.Core.Parsing;
 
 namespace ReqnrollRunner.Vsix.Adornments
@@ -40,17 +39,14 @@ namespace ReqnrollRunner.Vsix.Adornments
 
         private readonly IWpfTextView _view;
         private readonly IAdornmentLayer _layer;
-        private readonly FeatureFileParser _parser = new FeatureFileParser();
-        private readonly string _filePath;
         private readonly Action<int, bool> _invoke;
 
         /// <summary>Scenario keyword lines, 1-based. Recomputed when the buffer changes.</summary>
         private HashSet<int> _scenarioLines = new HashSet<int>();
 
-        public ScenarioActionsAdornment(IWpfTextView view, string filePath, Action<int, bool> invoke)
+        public ScenarioActionsAdornment(IWpfTextView view, Action<int, bool> invoke)
         {
             _view = view;
-            _filePath = filePath;
             _invoke = invoke;
             _layer = view.GetAdornmentLayer(LayerName);
 
