@@ -169,5 +169,42 @@ namespace ReqnrollRunner.Core.Tests
 
             Assert.False(result.Parsed);
         }
+
+        // ---- doc strings ---------------------------------------------------------------------
+        //
+        // `<name>` is Gherkin's placeholder syntax and also ordinary XML. A doc string is exactly
+        // where markup gets pasted, so the two collide there and nowhere else. Reqnroll really does
+        // substitute inside doc strings, so they cannot be skipped outright — but a tag is not a
+        // placeholder just because it is bracketed, and reporting `<order>` as an undefined column
+        // would fire on any payload fixture, which is the fastest way to get a validator switched off.
+
+        [Theory]
+        [InlineData("An outline whose doc string contains XML")]
+        [InlineData("A plain scenario whose doc string contains XML")]
+        public void Xml_in_a_doc_string_is_not_mistaken_for_a_placeholder(string scenario)
+        {
+            Assert.DoesNotContain(Diagnose("DocStrings.feature"), d => d.ScenarioName == scenario);
+        }
+
+        [Fact]
+        public void A_column_used_only_inside_a_doc_string_still_counts_as_used()
+        {
+            // The other half of the same rule. Ignoring doc strings entirely would fix the false
+            // positive above by introducing one in the opposite direction.
+            Assert.DoesNotContain(
+                Diagnose("DocStrings.feature"),
+                d => d.ScenarioName == "A column used only in a doc string, alongside XML");
+        }
+
+        [Fact]
+        public void A_placeholder_in_step_text_is_still_reported_in_a_file_full_of_doc_strings()
+        {
+            // Vacuity guard: the assertions above would all pass if the validator quietly stopped
+            // looking at this file at all.
+            ValidationDiagnostic only = Assert.Single(Diagnose("DocStrings.feature"));
+
+            Assert.Equal(FeatureValidator.UndefinedPlaceholder, only.Code);
+            Assert.Contains("<nonexistent>", only.Message);
+        }
     }
 }

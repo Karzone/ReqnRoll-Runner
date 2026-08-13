@@ -97,7 +97,18 @@ namespace ReqnrollRunner.Core.Validation
 
             // Placeholders can appear in a step's text, in its data table cells, and inside a doc
             // string — Reqnroll substitutes in all three, so all three count as "used".
+            //
+            // Doc strings are kept in a SEPARATE bucket, because `<name>` is also ordinary XML and a
+            // doc string is exactly where markup gets pasted. A payload of
+            // `<order><id>7</id></order>` yields four "placeholders", none of them intended, and
+            // reporting them as undefined columns fires on every fixture anyone writes. So a
+            // doc-string reference can only ever *confirm* a declared column (suppressing RR001); it
+            // is never itself reported as undefined. What that gives up is the genuine case of a
+            // typo'd placeholder inside a doc string — a fair trade against crying wolf on markup,
+            // which is far more common and is what gets a validator switched off.
             var used = new Dictionary<string, int>(StringComparer.Ordinal);
+            var inDocStrings = new Dictionary<string, int>(StringComparer.Ordinal);
+
             foreach (Step step in scenario.Steps)
             {
                 CollectPlaceholders(step.Text, step.Location.Line, used);
@@ -115,7 +126,7 @@ namespace ReqnrollRunner.Core.Validation
 
                 if (step.DocString != null)
                 {
-                    CollectPlaceholders(step.DocString.Content, step.DocString.Location.Line, used);
+                    CollectPlaceholders(step.DocString.Content, step.DocString.Location.Line, inDocStrings);
                 }
             }
 
@@ -177,6 +188,17 @@ namespace ReqnrollRunner.Core.Validation
                     1,
                     name));
                 return;
+            }
+
+            // A doc-string reference counts as a real use only when it names a declared column.
+            // Anything else in there is markup, and treating markup as a use would suppress RR001
+            // for a column that genuinely does nothing.
+            foreach (KeyValuePair<string, int> candidate in inDocStrings)
+            {
+                if (declared.ContainsKey(candidate.Key) && !used.ContainsKey(candidate.Key))
+                {
+                    used[candidate.Key] = candidate.Value;
+                }
             }
 
             // RR004 — an outline that substitutes nothing. Every row runs an identical test.
