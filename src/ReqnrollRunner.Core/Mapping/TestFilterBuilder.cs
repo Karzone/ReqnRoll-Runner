@@ -66,15 +66,20 @@ namespace ReqnrollRunner.Core.Mapping
         /// <list type="bullet">
         /// <item><b>MSTest</b> reports each row as <c>Name</c> = <c>Add many &lt;a&gt; and &lt;b&gt;(1,2,3,4)</c>,
         /// and a <c>Name~</c> filter on that selects exactly one row.</item>
-        /// <item><b>NUnit</b> puts the arguments in the fully-qualified name, but every filter over
-        /// them returns zero tests — <c>~</c> and <c>=</c>, escaped and unescaped, with and without
-        /// the namespace. The <c>(</c> and <c>"</c> characters defeat the VSTest filter parser.</item>
-        /// <item><b>xUnit</b> gives every row the same fully-qualified name, and
-        /// <c>DisplayName~</c> filters return zero.</item>
+        /// <item><b>NUnit</b> puts the arguments in the test name —
+        /// <c>AddManyAAndB("1","2","3","4",null)</c> — which no VSTest <c>--filter</c> operator
+        /// matches, but which NUnit's own <c>--where</c> language matches easily. Selected through
+        /// <c>NUnit.Where</c> instead; see <see cref="NUnitWhereForRow"/>.</item>
+        /// <item><b>xUnit</b> also names rows distinctly —
+        /// <c>Add many &lt;a&gt; and &lt;b&gt;(a: "1", b: "2", …)</c> — and a <c>DisplayName~</c>
+        /// filter does select one. It is not wired up yet because the display name embeds the
+        /// generated PARAMETER names, which are not in the feature file. Issue #14.</item>
         /// </list>
         /// <para>
-        /// So NUnit and xUnit widen to the whole outline. The caller is told, so the UI can say so
-        /// before the click rather than leaving the user to notice three tests ran instead of one.
+        /// An earlier version of this comment claimed NUnit and xUnit could not do this at all. That
+        /// was wrong, and wrong for an avoidable reason: the shell used to measure it stripped the
+        /// quote characters out of the filter before the test platform ever saw them, so every
+        /// attempt returned zero and the runners took the blame. Only xUnit still widens.
         /// </para>
         /// </remarks>
         /// <param name="fullyQualifiedClassName">Generated fixture class.</param>
@@ -91,6 +96,20 @@ namespace ReqnrollRunner.Core.Mapping
             int ordinal,
             out bool widened)
         {
+            if (runner == RunnerKind.NUnit && rowValues.Count > 0)
+            {
+                widened = false;
+                return new TestFilter(
+                    // Empty on purpose. --filter and NUnit.Where do NOT intersect: when both are
+                    // given, --filter wins and the adapter setting is ignored outright (measured —
+                    // the combined form ran all three rows). The where clause carries the class name
+                    // itself, so nothing is lost by dropping the --filter half.
+                    string.Empty,
+                    FilterStrategy.CodeBehind,
+                    "Matched example row " + ordinal + " by its NUnit test name.",
+                    NUnitWhereForRow(fullyQualifiedClassName, methodName, rowValues));
+            }
+
             if (runner == RunnerKind.MsTest && rowValues.Count > 0)
             {
                 // MSTest's display name is the row's values followed by Reqnroll's pickle index, so
@@ -126,6 +145,101 @@ namespace ReqnrollRunner.Core.Mapping
                 DescribeWidening(runner, ordinal));
         }
 
+        /// <summary>
+        /// An <c>NUnit.Where</c> expression selecting one example row of one generated method.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// NUnit names a row by its arguments — <c>Ns.CalculatorFeature.AddManyAAndB("1","2","3","4",null)</c>
+        /// — and a VSTest <c>--filter</c> cannot match that, which is why row selection was originally
+        /// believed impossible here. NUnit's own <c>--where</c> language matches it easily. Verified
+        /// against a real build: each of the three rows in the NUnit sample selects exactly itself.
+        /// </para>
+        /// <para>
+        /// Two details of the generated expression are deliberate and look odd without the reason.
+        /// </para>
+        /// <para>
+        /// <b>The quotes around each value are written as <c>.</c>, not as quotes.</b> The expression
+        /// travels as a single command-line argument, and embedding a double quote inside an argument
+        /// that is itself quoted is the kind of round trip that breaks differently on every shell and
+        /// process launcher. A <c>.</c> matches the quote character without ever putting one in the
+        /// argument. It stays precise because the whole chain is anchored at the opening bracket and
+        /// every value ends at a comma: for values 1 and 2, the pattern rejects
+        /// <c>AddManyAAndB("11","2",…)</c>, because after matching <c>1</c> it requires a comma where
+        /// a quote actually is.
+        /// </para>
+        /// <para>
+        /// <b>The bracket is <c>[(]</c> rather than <c>\(</c>.</b> NUnit's expression parser mangles a
+        /// backslash inside a quoted string — <c>\(</c> arrives at the regex engine as <c>//(</c> and
+        /// fails with "Not enough )'s". A character class escapes the bracket without a backslash.
+        /// </para>
+        /// </remarks>
+        private static string NUnitWhereForRow(
+            string fullyQualifiedClassName,
+            string methodName,
+            IReadOnlyList<string> rowValues)
+        {
+            var pattern = new StringBuilder();
+            pattern.Append(EscapeForNUnitRegex(fullyQualifiedClassName + "." + methodName));
+            pattern.Append("[(]");
+
+            foreach (string value in rowValues)
+            {
+                // '.' for the opening quote, the value, '.' for the closing quote, then the comma
+                // that anchors the next one.
+                pattern.Append('.').Append(EscapeForNUnitRegex(value)).Append(".,");
+            }
+
+            // `test`, not `name`: `name` is the test name alone, so two feature classes that both
+            // generated AddManyAAndB would both match. `test` is the fully-qualified name.
+            return "NUnit.Where=test =~ '" + pattern + "'";
+        }
+
+        /// <summary>
+        /// Escapes regex metacharacters for an <c>NUnit.Where</c> pattern, without using a backslash.
+        /// </summary>
+        /// <remarks>
+        /// <c>Regex.Escape</c> is not usable here: it escapes with backslashes, and NUnit's expression
+        /// parser corrupts those before the regex engine sees them. A single-character class is the
+        /// portable equivalent — <c>[.]</c> means a literal dot to both parsers.
+        /// </remarks>
+        private static string EscapeForNUnitRegex(string value)
+        {
+            var builder = new StringBuilder(value.Length);
+
+            foreach (char c in value)
+            {
+                if (".$^{[(|)*+?\\".IndexOf(c) >= 0)
+                {
+                    builder.Append('[').Append(c).Append(']');
+                }
+                else if (c == ']')
+                {
+                    // A ']' cannot be put inside a character class this way, and it is only special
+                    // when a class is already open — which, given every other metacharacter is
+                    // neutralised, it never is. Pass it through.
+                    builder.Append(c);
+                }
+                else
+                {
+                    builder.Append(c);
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        /// <summary>Whether this runner can select one example row at all.</summary>
+        /// <remarks>
+        /// Exposed so the Visual Studio command can label itself honestly before the click, without
+        /// duplicating the rule. NUnit goes through its own <c>--where</c>; MSTest through a VSTest
+        /// <c>Name~</c> on the display name. xUnit is the one that cannot yet — see issue #14.
+        /// </remarks>
+        public static bool CanSelectSingleRow(RunnerKind runner)
+        {
+            return runner == RunnerKind.NUnit || runner == RunnerKind.MsTest;
+        }
+
         /// <summary>Why a single row could not be selected, in the user's terms.</summary>
         private static string DescribeWidening(RunnerKind runner, int ordinal)
         {
@@ -141,11 +255,6 @@ namespace ReqnrollRunner.Core.Mapping
 
             switch (runner)
             {
-                case RunnerKind.NUnit:
-                    return "NUnit cannot filter to a single example row — it puts the row's arguments " +
-                           "in the test name, but VSTest filters cannot match them. Running all rows " +
-                           "of the outline instead of row " + ordinal + ". Tip: tagging an Examples " +
-                           "block lets you select it with a category filter.";
                 case RunnerKind.XUnit:
                     return "xUnit gives every example row the same fully-qualified name, so a single " +
                            "row cannot be selected. Running all rows of the outline instead of row " +

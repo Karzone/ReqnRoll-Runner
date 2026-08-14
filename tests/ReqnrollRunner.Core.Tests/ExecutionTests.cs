@@ -122,6 +122,45 @@ namespace ReqnrollRunner.Core.Tests
         }
 
         [Fact]
+        public void Puts_an_adapter_setting_after_the_double_dash_and_after_extra_arguments()
+        {
+            // Everything past `--` belongs to the test adapter, so anything appended beyond it would
+            // be read as an adapter setting rather than a dotnet test option. Extra arguments are
+            // the user's own and must still land as dotnet test options.
+            string arguments = DotnetTestRunner.BuildArguments(
+                "/repo/Tests.csproj", string.Empty, "r.trx",
+                new RunOptions { ExtraArguments = "--blame" },
+                "NUnit.Where=test =~ 'Ns[.]F[.]M[(].1.,'");
+
+            Assert.EndsWith(" -- \"NUnit.Where=test =~ 'Ns[.]F[.]M[(].1.,'\"", arguments);
+            Assert.True(
+                arguments.IndexOf("--blame", System.StringComparison.Ordinal) <
+                arguments.IndexOf(" -- ", System.StringComparison.Ordinal),
+                "extra arguments must come before the -- separator, or dotnet test never sees them");
+        }
+
+        [Fact]
+        public void An_empty_filter_produces_no_filter_argument_at_all()
+        {
+            // An NUnit row selection deliberately leaves the VSTest filter empty, because --filter
+            // and NUnit.Where do not intersect — given both, --filter wins and the where clause is
+            // ignored. An empty `--filter ""` would match nothing.
+            string arguments = DotnetTestRunner.BuildArguments(
+                "/repo/Tests.csproj", string.Empty, "r.trx", new RunOptions(), "NUnit.Where=x");
+
+            Assert.DoesNotContain("--filter", arguments);
+        }
+
+        [Fact]
+        public void No_adapter_setting_means_no_double_dash()
+        {
+            string arguments = DotnetTestRunner.BuildArguments(
+                "/repo/Tests.csproj", "f", "r.trx", new RunOptions());
+
+            Assert.DoesNotContain(" -- ", arguments);
+        }
+
+        [Fact]
         public void Quotes_a_path_containing_spaces()
         {
             string arguments = DotnetTestRunner.BuildArguments(

@@ -57,6 +57,7 @@ namespace ReqnrollRunner.Cli
                 Filter = mapping.Filter == null ? null : new FilterDto
                 {
                     Expression = mapping.Filter.Expression,
+                    RunSettings = mapping.Filter.RunSettings,
                     Strategy = mapping.Filter.Strategy.ToString(),
                     Explanation = mapping.Filter.Explanation,
                 },
@@ -96,6 +97,12 @@ namespace ReqnrollRunner.Cli
     internal sealed class FilterDto
     {
         public string Expression { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Adapter setting passed after <c>--</c>, e.g. <c>NUnit.Where=…</c>. Null for the common
+        /// case; set instead of <see cref="Expression"/> when selecting one NUnit example row.
+        /// </summary>
+        public string? RunSettings { get; set; }
 
         public string Strategy { get; set; } = string.Empty;
 

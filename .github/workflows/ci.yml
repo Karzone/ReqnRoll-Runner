@@ -172,6 +172,53 @@ jobs:
           fi
           echo "$count scenarios, $distinct distinct methods, $total tests total — all as expected"
 
+      # Row selection is the one place the runners genuinely differ, and it depends on adapter
+      # behaviour no unit test can see: MSTest goes through a VSTest `Name~` on the display name,
+      # NUnit through its own `NUnit.Where` language, and xUnit cannot yet. Asserting the COUNT is
+      # what matters — a filter that quietly widened to the whole outline would still pass, and
+      # still be wrong, without this.
+      - name: A single example row runs alone, or honestly says it cannot
+        shell: bash
+        run: |
+          set -uo pipefail
+          feature="samples/SampleCalculator/${{ matrix.sample }}/Features/Calculator.feature"
+
+          # Lines 42, 43 and 48 are the three example rows of the outline on line 34.
+          case "${{ matrix.runner }}" in
+            xUnit) want=3 ;;   # widens to the whole outline; see issue #14
+            *)     want=1 ;;
+          esac
+
+          for line in 42 43 48; do
+            output=$(dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
+              run --file "$feature" --line "$line" --no-build --configuration Release --json 2>&1)
+            status=$?
+            if [ $status -ne 0 ]; then
+              echo "::error::row on line $line exited $status"; echo "$output" | tail -20; exit 1
+            fi
+
+            passed=$(echo "$output" | python3 -c "import json,sys; print(json.load(sys.stdin)['passed'])")
+            if [ "$passed" != "$want" ]; then
+              echo "::error::row on line $line ran $passed tests, expected $want for ${{ matrix.runner }}"
+              echo "$output" | python3 -m json.tool | head -40
+              exit 1
+            fi
+            echo "  line $line: $passed passed, as expected for ${{ matrix.runner }}"
+          done
+
+          # Vacuity guard. Every count above would also hold if row detection had stopped working
+          # entirely and each line simply resolved to the whole outline — on xUnit that is even the
+          # expected answer. So assert the target really was identified as a row.
+          kind=$(dotnet run --project src/ReqnrollRunner.Cli --configuration Release --no-build -- \
+            map --file "$feature" --line 42 --json 2>&1 \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['target']['kind'])")
+
+          if [ "$kind" != "ExampleRow" ]; then
+            echo "::error::line 42 resolved as '$kind', not ExampleRow — row detection is broken"
+            exit 1
+          fi
+          echo "line 42 resolves as ExampleRow"
+
       - name: Reject a project with no Reqnroll reference
         shell: bash
         run: |

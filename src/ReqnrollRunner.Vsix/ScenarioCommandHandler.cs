@@ -136,7 +136,7 @@ namespace ReqnrollRunner.Vsix
                         return "Scenario Outline";
                     case TargetKind.ExampleRow:
                         // The label is the promise. Only claim a row when the runner can actually
-                        // isolate one; on NUnit and xUnit it falls back to "Scenario Outline", which
+                        // isolate one; on xUnit it falls back to "Scenario Outline", which
                         // is short, true, and visibly not what was asked for — the reason why is
                         // written to the output pane as a warning when the run starts.
                         return CanRunSingleRow(parsed.Target)
@@ -158,7 +158,8 @@ namespace ReqnrollRunner.Vsix
 
         /// <summary>
         /// Whether the project's runner can select a single example row. Mirrors
-        /// <c>TestFilterBuilder.ForExampleRow</c>; only MSTest can, and that was measured.
+        /// <c>TestFilterBuilder.CanSelectSingleRow</c> rather than repeating the rule, so the label
+        /// and the filter can never disagree about what is about to happen.
         /// </summary>
         private bool CanRunSingleRow(ScenarioTarget target)
         {
@@ -178,7 +179,7 @@ namespace ReqnrollRunner.Vsix
                 }
 
                 TestProjectInfo? project = new Core.Projects.ProjectResolver().Resolve(caret.FilePath, out _);
-                return project?.Runner == RunnerKind.MsTest;
+                return project != null && Core.Mapping.TestFilterBuilder.CanSelectSingleRow(project.Runner);
             }
             catch (Exception)
             {
@@ -296,7 +297,7 @@ namespace ReqnrollRunner.Vsix
 
             output.WriteLine("Target : " + mapping.Target!.Describe());
             output.WriteLine("Project: " + mapping.Project!.ProjectPath + "  [" + mapping.Project.Runner + "]");
-            output.WriteLine("Filter : " + mapping.Filter!.Expression);
+            output.WriteLine("Filter : " + mapping.Filter!.Describe());
 
             foreach (string warning in mapping.Warnings)
             {

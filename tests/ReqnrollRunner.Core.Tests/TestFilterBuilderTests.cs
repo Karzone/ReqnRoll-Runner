@@ -164,14 +164,80 @@ namespace ReqnrollRunner.Core.Tests
             Assert.DoesNotContain("(Name~", filter.Expression);
         }
 
+        [Fact]
+        public void An_NUnit_example_row_goes_through_NUnits_own_where_language()
+        {
+            // NUnit names a row by its arguments — AddManyAAndB("1","2","3","4",null) — which no
+            // VSTest --filter operator matches. NUnit's own --where does. Measured against a real
+            // build: each of the three rows in the NUnit sample selects exactly itself.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.NUnit,
+                new[] { "1", "2", "3" }, 1, out bool widened);
+
+            Assert.False(widened);
+            Assert.Equal("NUnit.Where=test =~ 'Ns[.]CalculatorFeature[.]AddManyAAndB[(].1.,.2.,.3.,'", filter.RunSettings);
+            Assert.Equal(FilterStrategy.CodeBehind, filter.Strategy);
+        }
+
+        [Fact]
+        public void An_NUnit_row_leaves_the_vstest_filter_empty()
+        {
+            // --filter and NUnit.Where do NOT intersect: given both, --filter wins and the adapter
+            // setting is ignored outright. Measured — the combined form ran all three rows. The
+            // where clause carries the class name, so it is safe to be the only selector.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.NUnit,
+                new[] { "1", "2" }, 1, out _);
+
+            Assert.Equal(string.Empty, filter.Expression);
+            Assert.Contains("Ns[.]CalculatorFeature[.]AddManyAAndB", filter.RunSettings);
+        }
+
+        [Fact]
+        public void An_NUnit_row_never_puts_a_backslash_or_a_quote_in_the_expression()
+        {
+            // Both would break, for different reasons. A double quote has to survive being embedded
+            // in an already-quoted command-line argument, which is shell- and launcher-specific. A
+            // backslash is mangled by NUnit's own expression parser before the regex engine sees it:
+            // `\(` arrives as `//(` and fails with "Not enough )'s".
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.CalculatorFeature", "AddManyAAndB", RunnerKind.NUnit,
+                new[] { "a.b", "c(d", "e*f" }, 1, out _);
+
+            Assert.DoesNotContain("\\", filter.RunSettings);
+            Assert.DoesNotContain("\"", filter.RunSettings);
+            // Metacharacters neutralised as single-character classes instead.
+            Assert.Contains("[.]", filter.RunSettings);
+            Assert.Contains("[(]", filter.RunSettings);
+            Assert.Contains("[*]", filter.RunSettings);
+        }
+
+        [Fact]
+        public void The_NUnit_row_pattern_is_anchored_so_a_longer_value_cannot_match()
+        {
+            // The '.' standing in for each quote is only safe because the chain is anchored at the
+            // opening bracket and every value is followed by a comma. Values 1 and 2 must not match
+            // AddManyAAndB("11","2",…) — after the literal 1 the pattern requires a comma, and a
+            // quote is what is actually there.
+            TestFilter filter = TestFilterBuilder.ForExampleRow(
+                "Ns.F", "M", RunnerKind.NUnit, new[] { "1", "2" }, 1, out _);
+
+            var pattern = new System.Text.RegularExpressions.Regex(
+                filter.RunSettings!.Substring(filter.RunSettings.IndexOf('\'') + 1).TrimEnd('\''));
+
+            Assert.Matches(pattern, "Ns.F.M(\"1\",\"2\",\"7\",null)");
+            Assert.DoesNotMatch(pattern, "Ns.F.M(\"11\",\"2\",\"7\",null)");
+            Assert.DoesNotMatch(pattern, "Ns.F.M(\"1\",\"22\",\"7\",null)");
+            Assert.DoesNotMatch(pattern, "Other.F.M(\"1\",\"2\",\"7\",null)");
+        }
+
         [Theory]
-        [InlineData(RunnerKind.NUnit)]
         [InlineData(RunnerKind.XUnit)]
         [InlineData(RunnerKind.Unknown)]
         public void Runners_that_cannot_select_a_row_widen_to_the_whole_outline(RunnerKind runner)
         {
-            // Measured, not assumed: NUnit puts the arguments in the FQN but no filter over them
-            // matches, and xUnit gives every row the same FQN. See ForExampleRow's remarks.
+            // xUnit names rows distinctly enough to filter, but the display name embeds the
+            // generated PARAMETER names, which are not in the feature file. Issue #14.
             TestFilter filter = TestFilterBuilder.ForExampleRow(
                 "Ns.CalculatorFeature", "AddManyAAndB", runner, new[] { "1", "2", "3" }, 2, out bool widened);
 
@@ -181,6 +247,22 @@ namespace ReqnrollRunner.Core.Tests
             // The explanation is shown to the user as a warning, so it has to name the row that was
             // asked for and say plainly that something else is happening.
             Assert.Contains("row 2", filter.Explanation);
+        }
+
+        [Theory]
+        [InlineData(RunnerKind.NUnit, true)]
+        [InlineData(RunnerKind.MsTest, true)]
+        [InlineData(RunnerKind.XUnit, false)]
+        [InlineData(RunnerKind.Unknown, false)]
+        public void Knows_which_runners_can_select_a_row(RunnerKind runner, bool expected)
+        {
+            // The VS command labels itself from this, so it must agree with ForExampleRow exactly —
+            // a menu that offers "Run Example Row 2" and then runs three tests is a broken promise.
+            Assert.Equal(expected, TestFilterBuilder.CanSelectSingleRow(runner));
+
+            TestFilterBuilder.ForExampleRow(
+                "Ns.F", "M", runner, new[] { "1" }, 1, out bool widened);
+            Assert.Equal(expected, !widened);
         }
 
         [Fact]

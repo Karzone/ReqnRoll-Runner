@@ -4,7 +4,7 @@ Test cases for the Reqnroll Runner Visual Studio extension. Work through them in
 result of each. Nothing here needs a developer background — if a step does not do what "Expected"
 says, that is a bug worth reporting, whatever the reason turns out to be.
 
-There are 24 test cases. Allow about 45 minutes.
+There are 25 test cases. Allow about 45 minutes.
 
 Anything that fails: open an issue at
 https://github.com/Karzone/ReqnRoll-Runner/issues with the test case number, what you saw, and a copy
@@ -221,8 +221,8 @@ is on before drawing the menu.
 
 ## Part 2 — Running one example row
 
-Only some test frameworks can run a single row of an Examples table. MSTest can; NUnit and xUnit
-cannot, and the extension is supposed to say so rather than pretend. Both halves are tested here.
+MSTest and NUnit can each run a single row of an Examples table, by different mechanisms. xUnit
+cannot yet, and the extension is supposed to say so rather than pretend. Both halves are tested here.
 
 ### TC-13 — MSTest runs exactly the row you picked
 
@@ -256,7 +256,9 @@ Repeat TC-13 for these two lines:
 The row numbers continue across both Examples blocks, so the third row is "Row 3" even though it is
 the first row of the second block.
 
-### TC-15 — NUnit says it cannot isolate a row
+### TC-15 — NUnit also runs exactly the row you picked
+
+NUnit gets there by a different route than MSTest, so it needs testing separately.
 
 **Steps**
 
@@ -265,13 +267,29 @@ the first row of the second block.
 
 **Expected**
 
-- Menu reads **Run Scenario Outline** — *not* "Run Example Row 1".
-- Running it gives **3 passed**.
-- The output pane contains a line starting `Warning:` that explains NUnit cannot filter to a single
-  row.
+- Menu reads **Run Example Row 1**.
+- **1 passed**, and the test that ran is `AddManyAAndB("1","2","3","4",null)`.
+- The `Filter :` line in the output pane mentions `NUnit.Where` rather than
+  `FullyQualifiedName`. That is expected — no VSTest filter can match an NUnit row, so this one goes
+  through NUnit's own selection language.
 
-A menu that offers "Run Example Row 1" here, or one that quietly runs 3 tests with no warning, is a
-bug.
+Repeat for lines 43 and 48; each should run one test, and the one you pointed at.
+
+### TC-15b — xUnit says it cannot isolate a row
+
+Only if you have an xUnit Reqnroll project to hand. This is the one runner that still widens.
+
+**Steps**
+
+1. Open the **xUnit** sample and its `Features\Calculator.feature`.
+2. Caret on line 42. Right-click.
+
+**Expected**
+
+- Menu reads **Run Scenario Outline** — *not* "Run Example Row 1".
+- **3 passed**, with a `Warning:` line in the output pane explaining why.
+
+A menu that offers a row here and then runs three tests is a bug — the label is a promise.
 
 ---
 

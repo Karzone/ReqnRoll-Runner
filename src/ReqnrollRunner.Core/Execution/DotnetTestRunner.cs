@@ -16,11 +16,29 @@ namespace ReqnrollRunner.Core.Execution
         /// <summary>VSTest's exact wording when a filter selects nothing — the most common failure mode.</summary>
         internal const string ZeroMatchMarker = "No test matches the given testcase filter";
 
+        /// <summary>What VSTest says instead when an ADAPTER-level setting selects nothing.</summary>
+        /// <remarks>
+        /// A <c>NUnit.Where</c> matching no test never reaches VSTest's own filter, so VSTest reports
+        /// the assembly as containing no tests at all rather than reporting a filter miss — and exits
+        /// 0 while doing it. Without this second marker, a mistyped row selection would look like a
+        /// successful run of nothing.
+        /// </remarks>
+        internal const string NoTestsAvailableMarker = "No test is available in";
+
         /// <summary>
         /// Builds the <c>dotnet test</c> argument string. Separated out and kept deterministic so it
         /// can be asserted in unit tests without launching anything.
         /// </summary>
-        public static string BuildArguments(string projectPath, string filterExpression, string trxFileName, RunOptions options)
+        /// <param name="runSettings">
+        /// An adapter setting to pass after the <c>--</c> separator, e.g. <c>NUnit.Where=…</c>.
+        /// Everything after <c>--</c> belongs to the adapter, so this is always appended last.
+        /// </param>
+        public static string BuildArguments(
+            string projectPath,
+            string filterExpression,
+            string trxFileName,
+            RunOptions options,
+            string? runSettings = null)
         {
             if (projectPath == null)
             {
@@ -67,6 +85,13 @@ namespace ReqnrollRunner.Core.Execution
                 arguments.Append(' ').Append(options.ExtraArguments!.Trim());
             }
 
+            // Strictly last: `--` hands everything after it to the test adapter, so anything appended
+            // beyond this point would be read as an adapter setting rather than a dotnet test option.
+            if (!string.IsNullOrWhiteSpace(runSettings))
+            {
+                arguments.Append(" -- ").Append(Quote(runSettings!));
+            }
+
             return arguments.ToString();
         }
 
@@ -108,7 +133,8 @@ namespace ReqnrollRunner.Core.Execution
                 WorkingDirectory = options.WorkingDirectory,
             };
 
-            string arguments = BuildArguments(mapping.Project.ProjectPath, filter, trxFileName, effectiveOptions);
+            string arguments = BuildArguments(
+                mapping.Project.ProjectPath, filter, trxFileName, effectiveOptions, mapping.Filter.RunSettings);
             string workingDirectory = effectiveOptions.WorkingDirectory
                                       ?? Path.GetDirectoryName(mapping.Project.ProjectPath)!;
 
@@ -127,7 +153,8 @@ namespace ReqnrollRunner.Core.Execution
                     environment: null,
                     onOutput: line =>
                     {
-                        if (line.IndexOf(ZeroMatchMarker, StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (line.IndexOf(ZeroMatchMarker, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            line.IndexOf(NoTestsAvailableMarker, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             zeroMatched = true;
                         }

@@ -147,7 +147,7 @@ namespace ReqnrollRunner.Cli
                 Console.WriteLine("Test method  : " + mapping.GeneratedMethodName);
             }
 
-            Console.WriteLine("Filter       : " + mapping.Filter!.Expression);
+            Console.WriteLine("Filter       : " + mapping.Filter!.Describe());
             Console.WriteLine("Strategy     : " + mapping.Filter.Strategy + " — " + mapping.Filter.Explanation);
 
             WriteWarnings(mapping.Warnings);

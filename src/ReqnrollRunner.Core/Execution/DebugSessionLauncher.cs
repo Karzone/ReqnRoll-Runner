@@ -147,7 +147,11 @@ namespace ReqnrollRunner.Core.Execution
             };
 
             string arguments = DotnetTestRunner.BuildArguments(
-                mapping.Project.ProjectPath, mapping.Filter.Expression, trxFileName, effectiveOptions);
+                mapping.Project.ProjectPath,
+                mapping.Filter.Expression,
+                trxFileName,
+                effectiveOptions,
+                mapping.Filter.RunSettings);
 
             string workingDirectory = effectiveOptions.WorkingDirectory
                                       ?? Path.GetDirectoryName(mapping.Project.ProjectPath)!;

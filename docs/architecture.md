@@ -103,22 +103,55 @@ The `Name~<title>` alternation is therefore used only where the fully-qualified 
 the sanitized fallback, where the reconstructed method name might be wrong and the raw title is a
 useful second chance, and single example rows, below.
 
-## Why a single example row works on MSTest and nowhere else
+## Why a single example row needs a different mechanism per runner
 
 A whole outline is one generated method, so every row shares one fully-qualified name. Selecting a
 single row therefore needs something *other* than the FQN — and only one of the three runners
 exposes anything usable. Established by running filters against real builds, not by reading docs:
 
-| Runner | What identifies a row | Can a VSTest filter select it? |
+| Runner | What identifies a row | How it is selected |
 |---|---|---|
-| MSTest | `DisplayName="Add many <a> and <b>(1,2,3,4)"` on each `[DataRow]` | **Yes** — `Name~` matches it |
-| NUnit | the arguments are in the FQN: `…AddManyAAndB("1","2","3",…)` | No. `~` and `=`, escaped and unescaped, with and without the namespace, all return zero tests — the `(` and `"` defeat the filter parser |
-| xUnit | nothing; every row has the same FQN | No. `DisplayName~` returns zero |
+| MSTest | `DisplayName="Add many <a> and <b>(1,2,3,4)"` on each `[DataRow]` | VSTest `Name~`, conjoined with the FQN |
+| NUnit | the arguments are in the test name: `…AddManyAAndB("1","2","3","4",null)` | **`NUnit.Where`**, the adapter's own language — no VSTest `--filter` operator matches that name |
+| xUnit | `Add many <a> and <b>(a: "1", b: "2", result: "3", …)` | Not yet. `DisplayName~` does select it, but the name embeds the generated *parameter* names, which the feature file does not contain — issue #14 |
 
-So MSTest gets a real row filter and the other two widen to the whole outline, with the reason
-surfaced *before* the click — the context-menu item relabels itself to "Run Scenario Outline (all
-examples — this runner cannot isolate a row)" rather than letting someone ask for row 2 and then
-notice three tests ran.
+So MSTest and NUnit both run a single row, and only xUnit widens to the whole outline. When it
+widens, the reason is surfaced *before* the click: the context-menu item reads "Run Scenario
+Outline" rather than offering a row it cannot deliver.
+
+**An earlier version of this table said NUnit and xUnit could not do this at all.** That was wrong,
+and wrong for an avoidable reason: the shell used to measure it stripped the `"` characters out of
+the filter before the test platform ever saw them, so every attempt returned zero tests and the
+runners took the blame for the harness. The lesson is not about quoting — it is that a negative
+measurement needs a positive control, and there wasn't one.
+
+### The NUnit expression
+
+```
+dotnet test … -- "NUnit.Where=test =~ 'Ns[.]F[.]AddManyAAndB[(].1.,.2.,.3.,'"
+```
+
+Four things about it are deliberate:
+
+* **No `--filter` alongside it.** The two do *not* intersect — given both, `--filter` wins and the
+  adapter setting is silently ignored (measured: the combined form ran all three rows). So the where
+  clause carries the class name and is the only selector.
+* **`test`, not `name`.** `name` is the test name alone, so two feature classes that both generated
+  `AddManyAAndB` would both match. `test` is the fully-qualified name.
+* **`.` in place of each quote.** The expression travels as one command-line argument; embedding a
+  double quote inside an already-quoted argument breaks differently on every shell and launcher. A
+  `.` matches the quote without ever putting one in the argument, and stays precise because the
+  chain is anchored at `[(]` and every value ends at a comma — for values 1 and 2 the pattern
+  rejects `AddManyAAndB("11","2",…)`, since after the literal `1` it requires a comma where a quote
+  actually is.
+* **`[(]`, not `\(`.** NUnit's expression parser mangles a backslash inside a quoted string: `\(`
+  reaches the regex engine as `//(` and fails with *"Not enough )'s"*. A character class escapes the
+  bracket without one.
+
+A `NUnit.Where` that matches nothing does not produce VSTest's usual "No test matches the given
+testcase filter" — it never reaches VSTest's filter, so the platform reports *"No test is available
+in …"* and exits 0. `DotnetTestRunner` watches for both markers, or a mistyped row would look like a
+successful run of nothing.
 
 The MSTest filter matches a **prefix** of the display name, `(1,2,3,` — the values followed by a
 comma — because the final component is Reqnroll's pickle index, a counter over the whole feature
@@ -133,8 +166,11 @@ that a caller cannot know. Two details matter:
   filter that cannot survive the argument round trip — the same rule the sanitized fallback applies
   to titles.
 
-Measured against `SampleCalculator.MsTest`: lines 42, 43 and 48 of `Calculator.feature` select
-`(1,2,3,4)`, `(4,5,9,5)` and `(10,20,30,6)` respectively — one test each, the right one each time.
+Measured against the samples: lines 42, 43 and 48 of `Calculator.feature` each run exactly one test
+under MSTest and under NUnit, and the test that ran is the row that was asked for — checked by name,
+not just by count. The CI matrix asserts those counts on every push (1 for MSTest and NUnit, 3 for
+xUnit) with a vacuity guard that the caret still resolves to `ExampleRow`, since every count would
+also hold if row detection had stopped working entirely.
 
 ## Why TRX is parsed rather than stdout
 
