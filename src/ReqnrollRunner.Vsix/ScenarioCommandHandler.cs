@@ -200,14 +200,6 @@ namespace ReqnrollRunner.Vsix
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // A second invocation cancels the run in flight rather than starting a competing one.
-            if (_currentRun != null)
-            {
-                _package.OutputPane.WriteLine("Cancelling the run already in progress…");
-                _currentRun.Cancel();
-                return;
-            }
-
             CaretPosition? caret = EditorContext.GetCaretPosition(_dte);
             if (caret == null)
             {
@@ -224,10 +216,19 @@ namespace ReqnrollRunner.Vsix
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (_currentRun != null)
+            // A second invocation cancels the run in flight rather than starting a competing one.
+            //
+            // `IsCancellationRequested` is checked as well, because a run that has ALREADY been
+            // cancelled but has not yet finished unwinding must not wedge the command: without it, a
+            // token left non-null by a run that died in an unexpected place turns every later click
+            // into "cancel the thing that is already cancelled", forever, until Visual Studio is
+            // restarted. The user sees a command that has silently stopped working.
+            CancellationTokenSource? inFlight = _currentRun;
+            if (inFlight != null && !inFlight.IsCancellationRequested)
             {
                 _package.OutputPane.WriteLine("Cancelling the run already in progress…");
-                _currentRun.Cancel();
+                _package.OutputPane.Activate();
+                inFlight.Cancel();
                 return;
             }
 
@@ -239,6 +240,24 @@ namespace ReqnrollRunner.Vsix
                 try
                 {
                     await ExecuteAsync(caret, debug, cancellation.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    _package.OutputPane.WriteLine("Cancelled.");
+                }
+                catch (Exception ex)
+                {
+                    // Without this catch, ANY unexpected exception here produces the worst possible
+                    // symptom: the user right-clicks Run and absolutely nothing happens. The task is
+                    // fire-and-forget, so the exception goes to the activity log — a file nobody
+                    // knows to look in — and the pane, the status bar and the editor all stay
+                    // exactly as they were. A crash that announces itself is worth a great deal more
+                    // than one that looks like a dead menu item.
+                    _package.OutputPane.WriteLine(string.Empty);
+                    _package.OutputPane.WriteLine("The run failed with an unexpected error. This is a bug — " +
+                        "please report it at https://github.com/Karzone/ReqnRoll-Runner/issues with the text below.");
+                    _package.OutputPane.WriteLine(ex.ToString());
+                    _package.OutputPane.Activate();
                 }
                 finally
                 {
