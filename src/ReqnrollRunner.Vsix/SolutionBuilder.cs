@@ -1,8 +1,12 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace ReqnrollRunner.Vsix
 {
@@ -39,13 +43,46 @@ namespace ReqnrollRunner.Vsix
             }
         }
 
+        /// <summary>How long to wait for a build before giving up and saying so.</summary>
+        private static readonly TimeSpan BuildTimeout = TimeSpan.FromMinutes(30);
+
+        /// <summary>How often to ask Visual Studio whether the build has finished.</summary>
+        private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(250);
+
         /// <summary>
-        /// Builds the project containing <paramref name="projectPath"/> and waits for it to finish.
+        /// Builds the project containing <paramref name="projectPath"/>, without blocking the UI.
         /// </summary>
-        /// <returns><see langword="true"/> when the build succeeded.</returns>
-        public static bool BuildProject(DTE2 dte, string projectPath, Action<string> log)
+        /// <remarks>
+        /// <para>
+        /// This used to call <c>BuildProject(…, WaitForBuildToFinish: true)</c> on the UI thread,
+        /// which is the obvious way to write it and is a trap. It blocks Visual Studio's message
+        /// pump for the whole build, and if the build then needs the UI thread for anything —
+        /// a prompt, a project reload, a designer — nothing can ever complete. Visual Studio detects
+        /// the state and offers "an operation is blocking user input… shut down anyway?", which is
+        /// where a real user ended up: a hung IDE and no way out but Task Manager.
+        /// </para>
+        /// <para>
+        /// So the build is kicked off asynchronously and awaited by polling <c>BuildState</c> from a
+        /// background thread, hopping onto the UI thread only for each brief property read. The pump
+        /// keeps running, the IDE stays responsive, cancelling the run cancels the build, and a build
+        /// that never finishes times out with a sentence instead of a locked window.
+        /// </para>
+        /// <para>
+        /// Polling rather than <c>IVsSolutionBuildManager.AdviseUpdateSolutionEvents</c> is a
+        /// deliberate trade. The event is the more correct mechanism, but it means a COM event sink
+        /// whose lifetime has to be got exactly right, and getting it wrong reintroduces a hang — the
+        /// precise failure being fixed here. A quarter-second poll cannot hang.
+        /// </para>
+        /// </remarks>
+        /// <returns><see langword="true"/> when the build succeeded, or was skipped harmlessly.</returns>
+        public static async Task<bool> BuildProjectAsync(
+            JoinableTaskFactory joinableTaskFactory,
+            DTE2 dte,
+            string projectPath,
+            Action<string> log,
+            CancellationToken cancellationToken)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Logged BEFORE the search, not after. The search walks the whole solution through COM,
             // and if it dies there the user needs to know the runner got this far — a pane that
@@ -64,9 +101,13 @@ namespace ReqnrollRunner.Vsix
             SolutionBuild solutionBuild = dte.Solution.SolutionBuild;
 
             string configuration;
+            string uniqueName;
+            string projectName;
             try
             {
                 configuration = solutionBuild.ActiveConfiguration.Name;
+                uniqueName = project.UniqueName;
+                projectName = project.Name;
             }
             catch (Exception ex)
             {
@@ -77,23 +118,98 @@ namespace ReqnrollRunner.Vsix
                 return true;
             }
 
-            log("Building " + project.Name + " (" + configuration + ")…");
+            log("Building " + projectName + " (" + configuration + ")…");
 
             try
             {
-                // waitForBuildToFinish: true — synchronous, so the caller can trust LastBuildInfo
-                // below. Note this blocks the UI thread for the duration; see issue #14.
-                solutionBuild.BuildProject(configuration, project.UniqueName, WaitForBuildToFinish: true);
+                // WaitForBuildToFinish: FALSE. This returns immediately and the build runs on
+                // Visual Studio's own schedule; see the remarks above for why the alternative is a
+                // hang rather than merely a pause.
+                solutionBuild.BuildProject(configuration, uniqueName, WaitForBuildToFinish: false);
             }
             catch (Exception ex)
             {
-                log("Visual Studio could not build the project: " + ex.Message);
+                log("Visual Studio could not start the build: " + ex.Message);
                 log("Build the solution yourself and try again, or turn on Tools → Options → " +
                     "Reqnroll Runner → Skip build before run.");
                 return false;
             }
 
-            int failures = solutionBuild.LastBuildInfo;
+            return await WaitForBuildAsync(
+                joinableTaskFactory, dte, solutionBuild, log, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>Polls until the build finishes, keeping the UI thread free between reads.</summary>
+        private static async Task<bool> WaitForBuildAsync(
+            JoinableTaskFactory joinableTaskFactory,
+            DTE2 dte,
+            SolutionBuild solutionBuild,
+            Action<string> log,
+            CancellationToken cancellationToken)
+        {
+            var elapsed = Stopwatch.StartNew();
+            bool everSawItRunning = false;
+
+            while (true)
+            {
+                // Off the UI thread for the wait itself — this is the whole point.
+                await TaskScheduler.Default;
+
+                try
+                {
+                    await Task.Delay(PollInterval, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    await CancelBuildAsync(joinableTaskFactory, dte, solutionBuild, log);
+                    throw;
+                }
+
+                await joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                vsBuildState state;
+                try
+                {
+                    state = solutionBuild.BuildState;
+                }
+                catch (Exception ex)
+                {
+                    log("Lost track of the build (" + ex.GetType().Name +
+                        "). Running against whatever was produced.");
+                    return true;
+                }
+
+                if (state == vsBuildState.vsBuildStateInProgress)
+                {
+                    everSawItRunning = true;
+                }
+                else if (everSawItRunning || elapsed.Elapsed > TimeSpan.FromSeconds(2))
+                {
+                    // The two-second grace covers the race between BuildProject returning and the
+                    // build actually starting: without it, an up-to-date project that is still
+                    // reporting vsBuildStateDone from the PREVIOUS build would be read as "finished"
+                    // before this one had begun.
+                    break;
+                }
+
+                if (elapsed.Elapsed > BuildTimeout)
+                {
+                    log("The build has not finished after " + (int)BuildTimeout.TotalMinutes +
+                        " minutes, so the run was abandoned. Visual Studio is still building.");
+                    return false;
+                }
+            }
+
+            int failures;
+            try
+            {
+                failures = solutionBuild.LastBuildInfo;
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+
             if (failures != 0)
             {
                 log("Build failed (" + failures + " project(s) failed). See the Error List.");
@@ -101,6 +217,33 @@ namespace ReqnrollRunner.Vsix
             }
 
             return true;
+        }
+
+        /// <summary>Stops an in-flight build when the run it belongs to is cancelled.</summary>
+        /// <remarks>
+        /// Through <c>ExecuteCommand</c> because <c>SolutionBuild</c> exposes no Cancel of its own —
+        /// <c>Build.Cancel</c> is the same command the Build menu invokes.
+        /// </remarks>
+        private static async Task CancelBuildAsync(
+            JoinableTaskFactory joinableTaskFactory,
+            DTE2 dte,
+            SolutionBuild solutionBuild,
+            Action<string> log)
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+            try
+            {
+                if (solutionBuild.BuildState == vsBuildState.vsBuildStateInProgress)
+                {
+                    dte.ExecuteCommand("Build.Cancel");
+                    log("Build cancelled.");
+                }
+            }
+            catch (Exception)
+            {
+                // Nothing useful to do — the run is being cancelled either way.
+            }
         }
 
         /// <summary>

@@ -286,6 +286,15 @@ namespace ReqnrollRunner.Vsix
                 output.WriteLine("Saved " + System.IO.Path.GetFileName(caret.FilePath) + " first.");
             }
 
+            // Read this before leaving the UI thread: whatever Visual Studio builds is what dotnet
+            // test must run, and dotnet test defaults to Debug regardless of the IDE's selection.
+            string? configuration = SolutionBuilder.GetActiveConfiguration(_dte);
+
+            // Everything above needed the UI thread. Nothing below does, and mapping reads and
+            // parses several files — the feature file, the .csproj, the generated code-behind — so
+            // it has no business holding the pump.
+            await TaskScheduler.Default;
+
             MappingResult mapping = _mapper.Map(caret.FilePath, caret.Line);
 
             if (!mapping.Success)
@@ -306,17 +315,19 @@ namespace ReqnrollRunner.Vsix
 
             output.WriteBlankLine();
 
-            await _package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            // Read this before building: whatever Visual Studio builds is what dotnet test must run,
-            // and dotnet test defaults to Debug regardless of the IDE's selection.
-            string? configuration = SolutionBuilder.GetActiveConfiguration(_dte);
-
             if (!options.SkipBuild)
             {
+                await _package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 _dte.StatusBar.Text = "Reqnroll Runner: building…";
 
-                if (!SolutionBuilder.BuildProject(_dte, mapping.Project.ProjectPath, output.WriteLine))
+                bool built = await SolutionBuilder.BuildProjectAsync(
+                    _package.JoinableTaskFactory,
+                    _dte,
+                    mapping.Project.ProjectPath,
+                    output.WriteLine,
+                    cancellationToken);
+
+                if (!built)
                 {
                     output.Activate();
                     return;

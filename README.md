@@ -85,7 +85,7 @@ tests in every case — measured, not assumed. This also sidesteps MSTest's frie
 | `src/ReqnrollRunner.Core` | All the real logic. `netstandard2.0`, **zero Visual Studio dependencies**. |
 | `src/ReqnrollRunner.Vsix` | The extension. VS 2022 and 2026, classic VSSDK, in-process, Windows-only build. |
 | `src/ReqnrollRunner.Cli` | `reqnroll-runner` — a thin console over Core. |
-| `tests/ReqnrollRunner.Core.Tests` | xUnit. 286 tests, the bulk of the coverage. |
+| `tests/ReqnrollRunner.Core.Tests` | xUnit. 290 tests, the bulk of the coverage. |
 | `tests/fixtures` | Feature files, captured TRX files and real generated code-behind. |
 | `samples/SampleCalculator` | Working Reqnroll projects — NUnit, xUnit and MSTest variants. |
 | `build/VsixCompileCheck` | Compiles the VSIX's C# on any platform so CI catches breakage. |
