@@ -82,7 +82,7 @@ namespace ReqnrollRunner.Vsix
             try
             {
                 // waitForBuildToFinish: true — synchronous, so the caller can trust LastBuildInfo
-                // below. Note this blocks the UI thread for the duration; see issue #13.
+                // below. Note this blocks the UI thread for the duration; see issue #14.
                 solutionBuild.BuildProject(configuration, project.UniqueName, WaitForBuildToFinish: true);
             }
             catch (Exception ex)

@@ -113,7 +113,7 @@ exposes anything usable. Established by running filters against real builds, not
 |---|---|---|
 | MSTest | `DisplayName="Add many <a> and <b>(1,2,3,4)"` on each `[DataRow]` | VSTest `Name~`, conjoined with the FQN |
 | NUnit | the arguments are in the test name: `…AddManyAAndB("1","2","3","4",null)` | **`NUnit.Where`**, the adapter's own language — no VSTest `--filter` operator matches that name |
-| xUnit | `Add many <a> and <b>(a: "1", b: "2", result: "3", …)` | Not yet. `DisplayName~` does select it, but the name embeds the generated *parameter* names, which the feature file does not contain — issue #14 |
+| xUnit | `Add many <a> and <b>(a: "1", b: "2", result: "3", …)` | Not yet. `DisplayName~` does select it, but the name embeds the generated *parameter* names, which the feature file does not contain — issue #13 |
 
 So MSTest and NUnit both run a single row, and only xUnit widens to the whole outline. When it
 widens, the reason is surfaced *before* the click: the context-menu item reads "Run Scenario

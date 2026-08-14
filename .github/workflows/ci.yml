@@ -185,7 +185,7 @@ jobs:
 
           # Lines 42, 43 and 48 are the three example rows of the outline on line 34.
           case "${{ matrix.runner }}" in
-            xUnit) want=3 ;;   # widens to the whole outline; see issue #14
+            xUnit) want=3 ;;   # widens to the whole outline; see issue #13
             *)     want=1 ;;
           esac
 

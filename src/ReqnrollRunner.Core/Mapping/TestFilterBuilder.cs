@@ -73,7 +73,7 @@ namespace ReqnrollRunner.Core.Mapping
         /// <item><b>xUnit</b> also names rows distinctly —
         /// <c>Add many &lt;a&gt; and &lt;b&gt;(a: "1", b: "2", …)</c> — and a <c>DisplayName~</c>
         /// filter does select one. It is not wired up yet because the display name embeds the
-        /// generated PARAMETER names, which are not in the feature file. Issue #14.</item>
+        /// generated PARAMETER names, which are not in the feature file. Issue #13.</item>
         /// </list>
         /// <para>
         /// An earlier version of this comment claimed NUnit and xUnit could not do this at all. That
@@ -233,7 +233,7 @@ namespace ReqnrollRunner.Core.Mapping
         /// <remarks>
         /// Exposed so the Visual Studio command can label itself honestly before the click, without
         /// duplicating the rule. NUnit goes through its own <c>--where</c>; MSTest through a VSTest
-        /// <c>Name~</c> on the display name. xUnit is the one that cannot yet — see issue #14.
+        /// <c>Name~</c> on the display name. xUnit is the one that cannot yet — see issue #13.
         /// </remarks>
         public static bool CanSelectSingleRow(RunnerKind runner)
         {
