@@ -51,7 +51,20 @@ namespace ReqnrollRunner.Vsix
 
         public void WriteBlankLine() => WriteLine(string.Empty);
 
-        /// <summary>Clears the pane and starts a run with a header line.</summary>
+        /// <summary>Clears the pane, brings it forward, and starts a run with a header line.</summary>
+        /// <remarks>
+        /// The pane is activated HERE, at the start, not only on failure.
+        ///
+        /// `CreatePane(fInitVisible: 1)` makes the pane exist; it does not open the Output window or
+        /// select the pane inside it. So a run that succeeded wrote its header, its filter, its
+        /// `dotnet test` line and its summary into a pane nobody was looking at, and the only other
+        /// feedback — the status bar — is cleared the moment the run ends. Right-click, Run, and to
+        /// all appearances nothing happened. That is exactly how the first real user described it.
+        ///
+        /// SPEC §4.2 asks for the pane to pop on failure, which it still does. Popping it on start as
+        /// well is strictly more informative and is what Build and Test Explorer both do — the run is
+        /// visible while it runs, rather than only when it goes wrong.
+        /// </remarks>
         public void StartRun(string header)
         {
             _joinableTaskFactory.RunAsync(async () =>
@@ -59,6 +72,7 @@ namespace ReqnrollRunner.Vsix
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
                 _pane.Clear();
                 _pane.OutputStringThreadSafe("── " + header + Environment.NewLine);
+                _pane.Activate();
             }).FileAndForget("reqnrollrunner/output/start");
         }
 

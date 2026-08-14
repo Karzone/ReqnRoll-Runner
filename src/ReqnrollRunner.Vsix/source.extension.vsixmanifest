@@ -2,15 +2,31 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
 
   <Metadata>
+    <!--
+      Version is STAMPED BY CI before packaging — the "Stamp a unique build version" step in
+      .github/workflows/ci.yml rewrites this attribute to 1.1.<run_number>. The value below is what
+      a local F5 build uses; it is not the shipped number.
+
+      Why this exists: VSIXInstaller refuses to install a package whose Identity is already present
+      at an equal or higher version. Every build from day one carried 1.0.0, so downloading a newer
+      artifact and double-clicking it silently kept the OLD extension — new commands, icons and
+      adornments never appeared, with nothing to explain why. A version that never moves makes every
+      build after the first undeliverable.
+    -->
     <Identity Id="ReqnrollRunner.Karzone.da7f88d0-dc3e-49a7-b3e8-d7e088ba9205"
-              Version="1.0.0"
+              Version="1.1.0"
               Language="en-US"
               Publisher="Karthik" />
-    <DisplayName>Reqnroll Runner (community companion)</DisplayName>
+    <!--
+      Just the name. The "(community companion)" qualifier was noise in a list of extension names —
+      the disclaimer belongs in the description below, where there is room to say it properly, not
+      bracketed onto every place the name appears.
+    -->
+    <DisplayName>Reqnroll Runner</DisplayName>
     <Description xml:space="preserve">Run or debug any Reqnroll scenario straight from the .feature file. Put the caret on a scenario, right-click, and pick Run Scenario or Debug Scenario — breakpoints in your step definitions hit.
 
 A community project. Not affiliated with, or endorsed by, the official Reqnroll Visual Studio extension, and designed to be installed alongside it: this extension adds no editor features of its own.</Description>
-    <MoreInfo>https://github.com/Karzone/reqnroll-runner</MoreInfo>
+    <MoreInfo>https://github.com/Karzone/ReqnRoll-Runner</MoreInfo>
     <License>LICENSE.txt</License>
     <Tags>Reqnroll, BDD, Gherkin, SpecFlow, Test, Feature, Cucumber</Tags>
   </Metadata>

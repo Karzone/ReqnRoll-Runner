@@ -46,6 +46,26 @@ jobs:
       - name: Test
         run: dotnet test ReqnrollRunner.sln --configuration Release
 
+      # The tag IS the version. Stamping it rather than checking it means the manifest can never
+      # disagree with the release someone downloaded it from — and, more importantly, that each
+      # release installs over the last, which a fixed version silently prevents.
+      - name: Stamp the release version
+        shell: pwsh
+        run: |
+          $path = 'src/ReqnrollRunner.Vsix/source.extension.vsixmanifest'
+          $version = ("${{ github.event.inputs.tag || github.ref_name }}" -replace '^v', '')
+
+          if ($version -notmatch '^\d+\.\d+(\.\d+){0,2}$') {
+            Write-Error "Tag '$version' is not a version VSIX accepts (expected v1.2.3)."
+            exit 1
+          }
+
+          [xml]$manifest = Get-Content $path
+          $manifest.PackageManifest.Metadata.Identity.Version = $version
+          $manifest.Save((Resolve-Path $path))
+
+          Write-Host "Stamped version $version"
+
       - name: Restore
         run: msbuild ReqnrollRunner.VisualStudio.sln -t:Restore -p:Configuration=Release
 
@@ -70,23 +90,18 @@ jobs:
             Write-Host "  ok: $required"
           }
 
-          # The manifest version is what Visual Studio shows in Extensions → Manage, and what it
-          # compares when offering an update. If it disagrees with the tag, users install "1.0.0"
-          # from a release called v0.2.0 and no later release will ever look newer to them.
-          #
-          # A warning rather than a failure: it is a labelling mistake, not a broken package, and
-          # failing here would throw away a build that is otherwise fine to hand out. Both numbers
-          # are printed either way, so the mismatch is visible in the log.
+          # Confirm the stamp above actually reached the packaged manifest. The version is what
+          # Visual Studio compares when deciding whether an install is an upgrade, so a package that
+          # shipped with the wrong one cannot be installed over its predecessor — and that failure is
+          # silent on the user's machine, which is why it is checked here instead.
           [xml]$manifest = Get-Content (Join-Path $extract 'extension.vsixmanifest')
           $manifestVersion = [string]$manifest.PackageManifest.Metadata.Identity.Version
           $tagVersion = ("${{ github.event.inputs.tag || github.ref_name }}" -replace '^v', '')
-          Write-Host "  manifest version: $manifestVersion / tag version: $tagVersion"
+          Write-Host "  version: $manifestVersion (tag: $tagVersion)"
 
-          # Compare on the first three components only — the manifest may carry a build number the
-          # tag does not (1.0.0.0 vs v1.0.0), which is not a mismatch worth shouting about.
-          function Truncate($v) { ($v -split '\.' | Select-Object -First 3) -join '.' }
-          if ((Truncate $manifestVersion) -ne (Truncate $tagVersion)) {
-            Write-Warning "Manifest version ($manifestVersion) does not match the tag ($tagVersion). Update source.extension.vsixmanifest before the next release."
+          if ($manifestVersion -ne $tagVersion) {
+            Write-Error "The packaged manifest says $manifestVersion but the tag is $tagVersion — the stamping step did not take effect."
+            exit 1
           }
 
       - name: Publish the release

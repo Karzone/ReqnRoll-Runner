@@ -204,6 +204,23 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      # Every artifact must carry a version higher than the last, or it cannot be installed over it.
+      # VSIXInstaller silently keeps the existing extension when the Identity is already present at
+      # an equal or higher version, so the fixed 1.0.0 made every build after the first a no-op on
+      # any machine that had already installed one — new commands and icons never appeared, with
+      # nothing to explain why. run_number is monotonic per workflow, which is the property needed.
+      - name: Stamp a unique build version
+        shell: pwsh
+        run: |
+          $path = 'src/ReqnrollRunner.Vsix/source.extension.vsixmanifest'
+          $version = "1.1.${{ github.run_number }}"
+
+          [xml]$manifest = Get-Content $path
+          $manifest.PackageManifest.Metadata.Identity.Version = $version
+          $manifest.Save((Resolve-Path $path))
+
+          Write-Host "Stamped version $version"
+
       - name: Restore
         run: msbuild ReqnrollRunner.VisualStudio.sln -t:Restore -p:Configuration=Release
 

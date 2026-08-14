@@ -158,6 +158,45 @@ Tools → Options → Environment → Keyboard, search `Reqnroll Runner.Run Scen
 and bindable. Bind it, scope it to *Text Editor*, and confirm <kbd>Ctrl</kbd>+<kbd>R</kbd>,<kbd>T</kbd>
 still does its normal thing in a `.cs` file.
 
+## Installing a newer build over an older one
+
+**Visual Studio will not replace an extension with a build carrying the same version number.**
+`VSIXInstaller` compares the `Identity` version, sees it is not higher, and keeps what is already
+installed — with no error. Every build before 2026-08-14 shipped as `1.0.0`, so downloading a fresh
+artifact and double-clicking it did nothing at all, and the symptom was simply that new commands,
+icons and adornments never appeared.
+
+CI now stamps `1.1.<run number>` into the manifest before packaging, so each artifact is strictly
+newer than the last and installs over it normally.
+
+**To confirm which build you are running:** Extensions → Manage Extensions → Installed, find
+*Reqnroll Runner*, read the version. `1.0.0` is a pre-2026-08-14 build and does not have example
+rows, icons or the editor adornments no matter what the release notes say.
+
+### Uninstall appears to do nothing
+
+It is queued, not immediate. Visual Studio cannot delete files it has loaded, so the uninstall is
+performed by a separate process **once every VS window has closed** — including any experimental
+instance left running from an F5, and any `devenv.exe` still alive in Task Manager after the windows
+have gone.
+
+In order:
+
+1. Extensions → Manage Extensions → Installed → *Reqnroll Runner* → **Uninstall**.
+2. Close **every** Visual Studio window. Check Task Manager for a surviving `devenv.exe` and end it.
+3. Reopen VS. The extension should be gone. Now install the new `.vsix`.
+
+If it survives that, remove it by hand — the extension is a folder, and deleting it is safe:
+
+```
+%LOCALAPPDATA%\Microsoft\VisualStudio\17.0_<hash>\Extensions\
+```
+
+With VS closed, find the subfolder containing `ReqnrollRunner.Vsix.dll` and delete it, then start VS
+once with `devenv /updateconfiguration` so the command table is rebuilt. A stale menu that still
+shows removed commands is the cache, not the extension; deleting the `17.0_<hash>Exp` hive (or
+running `/updateconfiguration`) clears it.
+
 ## If something is wrong
 
 **The commands do not appear at all.** This is the most likely failure and the only one that fails

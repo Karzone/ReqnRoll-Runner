@@ -78,9 +78,17 @@ namespace ReqnrollRunner.Vsix
         }
 
         /// <summary>
-        /// Shows the command only for <c>.feature</c> files, and labels it for what the caret is
-        /// actually on — "Run Scenario" vs "Run Scenario Outline (all examples)" vs "Run Feature".
+        /// Shows the command only for <c>.feature</c> files, and labels it for whatever the caret is
+        /// on — "Run Scenario", "Run Scenario Outline", "Run Example Row 3", "Run Feature".
         /// </summary>
+        /// <remarks>
+        /// The label is kept SHORT on purpose (2026-08-14 owner decision). It used to carry a
+        /// "  (Reqnroll)" suffix and spell out "(all examples)", which made the two longest entries
+        /// in a context menu that already has ten. Neither earned its width: the commands only exist
+        /// in a <c>.feature</c> file, they carry the run/debug glyphs, and "Scenario Outline" already
+        /// implies every row — the only case where the distinction matters is a single row, which now
+        /// names itself.
+        /// </remarks>
         private void UpdateStatus(OleMenuCommand command, bool debug)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -96,8 +104,7 @@ namespace ReqnrollRunner.Vsix
             command.Visible = true;
             command.Enabled = true;
 
-            string verb = debug ? "Debug" : "Run";
-            command.Text = verb + " " + DescribeTargetForMenu() + "  (Reqnroll)";
+            command.Text = (debug ? "Debug " : "Run ") + DescribeTargetForMenu();
         }
 
         /// <summary>
@@ -126,13 +133,15 @@ namespace ReqnrollRunner.Vsix
                 switch (parsed.Target.Kind)
                 {
                     case TargetKind.ScenarioOutline:
-                        return "Scenario Outline (all examples)";
+                        return "Scenario Outline";
                     case TargetKind.ExampleRow:
-                        // Say up front when the runner cannot isolate a row, rather than letting the
-                        // user click "Example Row 2" and then notice three tests ran.
+                        // The label is the promise. Only claim a row when the runner can actually
+                        // isolate one; on NUnit and xUnit it falls back to "Scenario Outline", which
+                        // is short, true, and visibly not what was asked for — the reason why is
+                        // written to the output pane as a warning when the run starts.
                         return CanRunSingleRow(parsed.Target)
                             ? "Example Row " + parsed.Target.ExampleRow!.OrdinalWithinOutline
-                            : "Scenario Outline (all examples — this runner cannot isolate a row)";
+                            : "Scenario Outline";
                     case TargetKind.Feature:
                     case TargetKind.Rule:
                         return "Feature";
